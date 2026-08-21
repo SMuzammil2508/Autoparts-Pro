@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AutoParts Pro | Multi-Floor Inventory & Quick Quote</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: ['class', '[data-theme="dark"]'],
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fffbeb',
+              100: '#fef3c7',
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+              900: '#78350f',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- HTML5-QRCode Industrial Camera Barcode & QR Scanner Engine -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <!-- SheetJS / XLSX Engine for Native Excel (.xlsx / .xls) & CSV Import -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="./src/css/style.css" />
+</head>
+<body class="bg-[#0a0e17] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-black">
+
+  <!-- TOP HEADER -->
+  <header class="glass-panel sticky top-0 z-40 border-b border-slate-800/80 px-3 md:px-6 py-3 transition-colors">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 md:gap-4">
+      
+      <!-- Store Brand & Logo -->
+      <div class="flex items-center gap-2 md:gap-3 cursor-pointer" onclick="location.reload()">
+        <div class="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/20">
+          <i data-lucide="gauge" class="w-6 h-6 text-slate-950"></i>
+        </div>
+        <div>
+          <h1 id="store-brand-title" class="text-sm md:text-lg font-black tracking-tight text-slate-100 flex items-center gap-1.5">
+            City Auto Parts & Spares
+          </h1>
+          <div class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Multi-Floor Inventory & Quick Quote</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center / Actions: Ground Floor Stash Alert + Daily Outflow Register -->
+      <div class="flex items-center gap-1.5 md:gap-3">
+        
+        <!-- RETURNED ON COUNTER (UNUSED) ALERT BUTTON -->
+        <button 
+          id="ground-stash-header-badge" 
+          class="btn-touch hidden items-center gap-1.5 px-3 md:px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-extrabold text-xs md:text-sm border border-amber-500/40 shadow-md transition-all cursor-pointer"
+          title="Click to view unused returned items sitting on the ground floor counter"
+        >
+          <i data-lucide="corner-up-left" class="w-4 h-4 text-amber-400"></i>
+          <span class="hidden sm:inline">Returned on Counter:</span>
+          <span id="ground-stash-count-num" class="bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full text-xs font-black">0</span>
+        </button>
+
+        <!-- DEFECTIVE RETURNS & WHOLESALER CLAIMS BUTTON -->
+        <button 
+          id="open-defective-claims-btn" 
+          class="btn-touch flex items-center gap-1.5 px-3 md:px-3.5 py-2 rounded-xl bg-rose-950/70 hover:bg-rose-900 text-rose-200 border border-rose-600/50 font-bold text-xs md:text-sm transition-all shadow-md shadow-rose-950/40"
+          title="View defective parts quarantined on ground floor and track wholesaler return claims"
+        >
+          <i data-lucide="shield-alert" class="w-4 h-4 text-rose-400"></i>
+          <span class="hidden sm:inline">Wholesaler Claims</span>
+          <span id="defective-pending-count" class="bg-rose-600 text-white px-2 py-0.5 rounded-full text-xs font-black">0</span>
+        </button>
+
+        <!-- DIGITAL DAILY OUTFLOW BOOK (SOLVES PROBLEM 1 NOTEBOOK ISSUE) -->
+        <button 
+          id="open-outflow-modal-btn" 
+          class="btn-touch flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs md:text-sm transition-all"
+          title="Replaces the physical daily outflow notebook. View all sales logged today."
+        >
+          <i data-lucide="book-open" class="w-4 h-4 text-amber-400"></i>
+          <span class="hidden sm:inline">Daily Outflow Book</span>
+          <span id="header-today-revenue" class="text-emerald-400 font-mono text-xs hidden md:inline">₹ 0</span>
+        </button>
+
+        <!-- BULK PRICE REVISION & WHOLESALER CSV SYNC BUTTON -->
+        <button 
+          id="open-price-revision-btn" 
+          class="btn-touch flex items-center gap-1.5 px-3 md:px-3.5 py-2 rounded-xl bg-purple-950/80 hover:bg-purple-900 text-purple-200 border border-purple-500/50 font-bold text-xs md:text-sm transition-all shadow-md shadow-purple-950/40"
+          title="1-Click Brand Price Revision (e.g. Monroe +5%) and Wholesaler CSV Price List Importer"
+        >
+          <i data-lucide="trending-up" class="w-4 h-4 text-purple-400"></i>
+          <span class="hidden sm:inline">Price Revision</span>
+        </button>
+
+        <!-- ADD NEW PART BUTTON -->
+        <button 
+          id="open-add-part-btn" 
+          class="btn-touch flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs md:text-sm transition-all shadow-md shadow-blue-600/30"
+          title="Add a new auto part to the catalog"
+        >
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span class="hidden md:inline">Add Part</span>
+        </button>
+
+        <!-- THEME & SETTINGS -->
+        <div class="flex items-center gap-1">
+          <button 
+            id="theme-toggle-btn" 
+            class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 flex items-center justify-center transition-all"
+            title="Toggle Dark/Light Mode"
+          >
+            <i id="theme-toggle-icon" data-lucide="sun" class="w-4 h-4"></i>
+          </button>
+
+          <button 
+            id="open-settings-btn" 
+            class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 flex items-center justify-center transition-all"
+            title="Shop Settings & Currency"
+          >
+            <i data-lucide="settings" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-7xl mx-auto w-full px-3 md:px-6 py-4 md:py-6 flex-1 flex flex-col gap-4">
+
+    <!-- SEARCH & QUICK FILTERS HERO -->
+    <section class="flex flex-col gap-3">
+      
+      <!-- GIANT SEARCH BAR + SPEECH TO TEXT -->
+      <div class="relative flex items-center">
+        <!-- Search Icon -->
+        <div class="absolute left-4 pointer-events-none text-slate-400">
+          <i data-lucide="search" class="w-6 h-6"></i>
+        </div>
+
+        <!-- Giant Input -->
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="Search by Part Name (e.g. Brake Pad), Part # (e.g. BP-402), or Car Model (e.g. Toyota Corolla)..."
+          class="w-full pl-12 pr-28 py-3.5 md:py-4 rounded-2xl bg-slate-900/90 border-2 border-slate-700/80 focus:border-amber-500 focus:outline-none text-slate-100 placeholder-slate-500 text-sm md:text-base font-semibold shadow-xl transition-all"
+          autocomplete="off"
+        />
+
+        <!-- Right Side Controls: Clear All Filters + Voice Search + Barcode Scanner -->
+        <div class="absolute right-2.5 flex items-center gap-1.5">
+          <!-- Clear Search Text Button -->
+          <button 
+            id="clear-search-btn" 
+            class="hidden w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center transition-colors"
+            title="Clear Search Text"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+
+          <!-- Clear All Active Filters Button -->
+          <button 
+            id="clear-all-filters-top-btn" 
+            class="hidden btn-touch px-2.5 py-1.5 rounded-xl bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-500/50 flex items-center gap-1 text-xs font-bold transition-all shadow-md shadow-rose-950/40"
+            title="Clear all active filters (search, brand, category, subcategory & floor tabs)"
+          >
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-400"></i>
+            <span>Clear All</span>
+          </button>
+
+          <!-- Voice Search (Speech-to-Text) Button -->
+          <button 
+            id="voice-search-btn" 
+            class="btn-touch px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 text-xs font-bold transition-all shadow-md"
+            title="Tap to speak car model or part name (Hands-Free Voice Search)"
+          >
+            <i data-lucide="mic" class="w-4 h-4 text-amber-400"></i>
+            <span class="hidden sm:inline">Voice Search</span>
+          </button>
+
+          <!-- LIVE BARCODE SCANNER BUTTON -->
+          <button 
+            id="open-barcode-scanner-btn" 
+            class="btn-touch px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold flex items-center gap-1.5 text-xs transition-all shadow-lg shadow-emerald-950/40 border border-emerald-400/40"
+            title="Open camera barcode scanner or connect hardware laser scanner gun to auto-sell parts"
+          >
+            <i data-lucide="scan-barcode" class="w-4 h-4"></i>
+            <span>Scan & Sell</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- VEHICLE BRAND QUICK-TAP CHIPS (MULTI-LINE WRAP) -->
+      <div class="flex flex-wrap items-center gap-1.5 md:gap-2 pb-1 pt-0.5" id="brand-chips-container">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- PART CATEGORY QUICK-TAP CHIPS (MULTI-LINE WRAP) -->
+      <div class="flex flex-wrap items-center gap-1.5 md:gap-2 pb-1" id="category-chips-container">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- ACTIVE DRILL-DOWN BREADCRUMB & SUB-CATEGORY QUICK CHIPS (MULTI-LINE WRAP) -->
+      <div id="subcategory-wrapper" class="hidden flex-col gap-1.5 pt-0.5 pb-1">
+        <div class="flex items-center justify-between">
+          <div id="active-drilldown-breadcrumb" class="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+            <!-- Injected via JavaScript -->
+          </div>
+          <button id="btn-reopen-subcategory-modal" class="btn-touch px-2.5 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold border border-slate-700 flex items-center gap-1">
+            <i data-lucide="layers" class="w-3 h-3 text-amber-400"></i>
+            <span>Change Type</span>
+          </button>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5 pb-0.5" id="subcategory-chips-container">
+          <!-- Injected via JavaScript -->
+        </div>
+      </div>
+
+      <!-- STATUS FILTER TABS -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2 overflow-x-auto no-scrollbar gap-2">
+        <div class="flex items-center gap-1 md:gap-2">
+          <!-- All Parts -->
+          <button 
+            data-tab="all" 
+            class="status-tab-btn active btn-touch px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold border border-amber-400 text-amber-400 bg-amber-950/40 flex items-center gap-1.5 transition-all"
+          >
+            <span>All Parts</span>
+            <span id="tab-count-all" class="px-1.5 py-0.2 bg-slate-800 rounded text-[11px] text-slate-300">0</span>
+          </button>
+
+          <!-- Ground Floor Unused Returns (Problem 2 Focus) -->
+          <button 
+            data-tab="ground-stash" 
+            class="status-tab-btn btn-touch px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold border border-transparent text-slate-400 hover:text-amber-300 flex items-center gap-1.5 transition-all"
+            title="Unused parts returned by customers - currently sitting on the ground floor counter"
+          >
+            <span>🔥 Returned on Counter (Unused)</span>
+            <span id="tab-count-stash" class="px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded text-[11px] font-black">0</span>
+          </button>
+
+          <!-- Defective Quarantined Returns (Wholesaler Claims) -->
+          <button 
+            data-tab="defective" 
+            class="status-tab-btn btn-touch px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold border border-transparent text-slate-400 hover:text-rose-400 flex items-center gap-1.5 transition-all"
+            title="Defective / damaged parts returned by customers - quarantined for wholesaler return"
+          >
+            <span>⚠️ Defective (Wholesaler Claims)</span>
+            <span id="tab-count-defective" class="px-1.5 py-0.2 bg-rose-500/20 text-rose-300 rounded text-[11px] font-black">0</span>
+          </button>
+
+          <!-- In Stock -->
+          <button 
+            data-tab="in-stock" 
+            class="status-tab-btn btn-touch px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold border border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all"
+          >
+            <span>In Stock</span>
+            <span id="tab-count-in" class="px-1.5 py-0.2 bg-slate-800 rounded text-[11px] text-slate-400">0</span>
+          </button>
+
+          <!-- Low Stock -->
+          <button 
+            data-tab="low-stock" 
+            class="status-tab-btn btn-touch px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold border border-transparent text-slate-400 hover:text-amber-400 flex items-center gap-1.5 transition-all"
+          >
+            <span>Low Stock</span>
+            <span id="tab-count-low" class="px-1.5 py-0.2 bg-slate-800 rounded text-[11px] text-amber-400">0</span>
+          </button>
+
+          <!-- Out of Stock -->
+          <button 
+            data-tab="out-of-stock" 
+            class="status-tab-btn btn-touch px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold border border-transparent text-slate-400 hover:text-rose-400 flex items-center gap-1.5 transition-all"
+          >
+            <span>Out of Stock</span>
+            <span id="tab-count-out" class="px-1.5 py-0.2 bg-slate-800 rounded text-[11px] text-rose-400">0</span>
+          </button>
+        </div>
+
+        <div id="header-today-sales-count" class="text-xs text-slate-400 font-semibold whitespace-nowrap hidden sm:block">
+          0 pcs sold today
+        </div>
+      </div>
+
+    </section>
+
+    <!-- PRODUCTS GRID -->
+    <section id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-12">
+      <!-- Injected via JavaScript -->
+    </section>
+
+  </main>
+
+  <!-- ================= MODALS & DRAWERS ================= -->
+
+  <!-- MODAL 1: GROUND FLOOR STASH / RETURN TRAY (SOLVES PROBLEM 2) -->
+  <div id="ground-stash-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-3 md:p-6">
+    <div class="modal-enter w-full max-w-2xl bg-slate-950 border-2 border-amber-500/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-amber-950 to-slate-900 px-5 py-4 border-b border-amber-500/40 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center">
+            <i data-lucide="package-search" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-black text-amber-200">Ground Floor Counter Stash</h2>
+            <p id="ground-stash-modal-total" class="text-xs text-amber-400 font-medium">0 Items Waiting on Ground Floor</p>
+          </div>
+        </div>
+        <button id="close-stash-modal-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Info Banner -->
+      <div class="bg-amber-950/40 px-5 py-2.5 border-b border-amber-500/20 text-xs text-amber-300 flex items-center gap-2">
+        <i data-lucide="info" class="w-4 h-4 flex-shrink-0 text-amber-400"></i>
+        <span>These parts were returned unused and are currently sitting on the ground floor. When you take them upstairs to their racks, tap <strong>"Carry Upstairs"</strong>.</span>
+      </div>
+
+      <!-- Stash Items List -->
+      <div id="ground-stash-items-list" class="p-4 md:p-5 overflow-y-auto space-y-2.5 flex-1">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between gap-3">
+        <button id="transfer-all-stash-btn" class="btn-touch px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-bold text-xs md:text-sm flex items-center gap-2 shadow-md">
+          <i data-lucide="arrow-up-circle" class="w-4 h-4"></i>
+          <span>Move All Items Upstairs to Racks</span>
+        </button>
+        <button onclick="document.getElementById('ground-stash-modal').classList.add('hidden')" class="btn-touch px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 2: DIGITAL DAILY OUTFLOW BOOK (REPLACES PAPER REGISTER) -->
+  <div id="daily-outflow-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-2 md:p-6">
+    <div class="modal-enter w-full max-w-4xl bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Header -->
+      <div class="bg-slate-900 px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center">
+            <i data-lucide="book-marked" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-black text-slate-100">Digital Daily Outflow Register</h2>
+            <p class="text-xs text-slate-400">Replaces physical handwritten sales book with automated logging</p>
+          </div>
+        </div>
+        <button id="close-outflow-modal-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Quick Stats Ticker -->
+      <div class="bg-slate-900/60 p-4 border-b border-slate-800 grid grid-cols-3 gap-3 text-center">
+        <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-[11px] font-bold text-slate-400 uppercase">Total Revenue</div>
+          <div id="modal-outflow-total-rev" class="text-xl md:text-2xl font-black text-emerald-400 font-mono">$0.00</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-[11px] font-bold text-slate-400 uppercase">Items Sold</div>
+          <div id="modal-outflow-total-items" class="text-xl md:text-2xl font-black text-amber-400 font-mono">0 pcs</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-[11px] font-bold text-slate-400 uppercase">Total Transactions</div>
+          <div id="modal-outflow-total-count" class="text-xl md:text-2xl font-black text-blue-400 font-mono">0 sales</div>
+        </div>
+      </div>
+
+      <!-- Filter Tabs & Export Buttons -->
+      <div class="px-5 py-3 bg-slate-900/40 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5">
+          <button data-filter="today" class="outflow-date-filter-btn px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs">
+            Today
+          </button>
+          <button data-filter="yesterday" class="outflow-date-filter-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 font-semibold text-xs">
+            Yesterday
+          </button>
+          <button data-filter="all" class="outflow-date-filter-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 font-semibold text-xs">
+            All Records
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="print-outflow-ledger-btn" class="btn-touch px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-slate-700">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span>Print Ledger</span>
+          </button>
+          <button id="export-outflow-csv-btn" class="btn-touch px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span>Export CSV</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Ledger Table (Printable Area) -->
+      <div id="print-area" class="p-4 overflow-y-auto flex-1">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-700 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+              <th class="py-2.5 px-3">Time</th>
+              <th class="py-2.5 px-3">Part Details</th>
+              <th class="py-2.5 px-3 text-center">Qty</th>
+              <th class="py-2.5 px-3 text-right">Unit Price</th>
+              <th class="py-2.5 px-3 text-right">Total</th>
+              <th class="py-2.5 px-3">Fulfilled From</th>
+              <th class="py-2.5 px-3 text-center no-print">Action</th>
+            </tr>
+          </thead>
+          <tbody id="outflow-log-tbody">
+            <!-- Injected via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-end">
+        <button onclick="document.getElementById('daily-outflow-modal').classList.add('hidden')" class="btn-touch px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold">
+          Close Ledger
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 3: QUICK ADD / EDIT PART -->
+  <div id="add-part-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-3 md:p-6">
+    <div class="modal-enter w-full max-w-xl bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <div class="bg-slate-900 px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <h2 id="add-part-modal-title" class="text-base md:text-lg font-black text-slate-100">Add New Auto Part</h2>
+        <button id="close-add-part-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="add-part-form" class="p-5 overflow-y-auto space-y-4 flex-1 text-xs md:text-sm">
+        <input type="hidden" id="form-part-id" value="" />
+
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Part Name *</label>
+          <input type="text" id="form-part-name" required placeholder="e.g. Front Ceramic Brake Pads (Set of 4)" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-semibold focus:border-amber-500 focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">Part Number / SKU *</label>
+            <input type="text" id="form-part-number" required placeholder="e.g. BP-TY-402" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-mono focus:border-amber-500 focus:outline-none uppercase text-xs" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">Barcode / EAN</label>
+            <input type="text" id="form-part-barcode" placeholder="e.g. 890100104021" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-emerald-400 font-mono focus:border-emerald-500 focus:outline-none text-xs" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">OEM Brand</label>
+            <input type="text" id="form-part-brand" placeholder="e.g. Bosch, Denso" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:border-amber-500 focus:outline-none text-xs" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">Vehicle Brand</label>
+            <select id="form-vehicle-brand" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:border-amber-500 focus:outline-none">
+              <option value="Toyota">Toyota</option>
+              <option value="Honda">Honda</option>
+              <option value="Hyundai">Hyundai</option>
+              <option value="Suzuki / Maruti">Suzuki / Maruti</option>
+              <option value="Ford">Ford</option>
+              <option value="Nissan">Nissan</option>
+              <option value="Volkswagen">Volkswagen</option>
+              <option value="Universal">Universal / Multi-Brand</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">Part Category</label>
+            <select id="form-category" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:border-amber-500 focus:outline-none">
+              <option value="Brakes">Brakes</option>
+              <option value="Suspension">Suspension</option>
+              <option value="Filters">Filters</option>
+              <option value="Ignition">Ignition</option>
+              <option value="Electrical">Electrical</option>
+              <option value="Clutch">Clutch</option>
+              <option value="Cooling">Cooling</option>
+              <option value="Belts">Belts</option>
+              <option value="Body">Body & Wipers</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Compatible Car Models (comma separated)</label>
+          <input type="text" id="form-compatible-models" placeholder="e.g. Corolla 2014-2022, Prius 2016-2022" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:border-amber-500 focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">Cost Price (Rs)</label>
+            <input type="number" step="0.01" id="form-cost-price" placeholder="1100.00" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-mono focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">Selling Price (Rs) *</label>
+            <input type="number" step="0.01" id="form-selling-price" required placeholder="1950.00" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-amber-400 font-black font-mono text-base focus:border-amber-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+          <div class="font-bold text-slate-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="map-pin" class="w-4 h-4 text-blue-400"></i>
+            <span>Warehouse Floor & Rack Allocation</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Assigned Rack Location</label>
+            <input type="text" id="form-rack-location" placeholder="Floor 1 - Rack A-04" class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 font-semibold focus:border-amber-500 focus:outline-none" />
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div>
+              <label class="block text-[11px] text-amber-400 font-bold mb-1">Ground Floor</label>
+              <input type="number" id="form-stock-ground" min="0" value="0" class="w-full p-2 rounded-lg bg-slate-950 border border-amber-500/40 text-amber-400 font-bold text-center" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-blue-400 font-bold mb-1">1st Floor</label>
+              <input type="number" id="form-stock-floor1" min="0" value="5" class="w-full p-2 rounded-lg bg-slate-950 border border-blue-500/40 text-blue-400 font-bold text-center" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-purple-400 font-bold mb-1">2nd Floor</label>
+              <input type="number" id="form-stock-floor2" min="0" value="0" class="w-full p-2 rounded-lg bg-slate-950 border border-purple-500/40 text-purple-400 font-bold text-center" />
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="w-full btn-touch py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/30">
+            Save Product to Inventory
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- MODAL 4: SHOP SETTINGS -->
+  <div id="settings-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-3 md:p-6">
+    <div class="modal-enter w-full max-w-md bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      
+      <div class="bg-slate-900 px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <h2 class="text-base md:text-lg font-black text-slate-100">Shop Settings</h2>
+        <button id="close-settings-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="settings-form" class="p-5 space-y-4 text-xs md:text-sm">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Store Name</label>
+          <input type="text" id="setting-store-name" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-semibold focus:border-amber-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Visual Theme / Color Scheme</label>
+          <select id="setting-theme-select" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-semibold focus:border-amber-500 focus:outline-none">
+            <option value="midnight">🏆 Midnight Executive (Dark Slate & Cobalt - Recommended)</option>
+            <option value="titanium">⚡ Titanium Racing (High-Contrast Carbon & Gold)</option>
+            <option value="sapphire">💎 Sapphire Pro (Enterprise Deep Navy & Cyan)</option>
+            <option value="light">🏢 Modern Storefront (Clean Crisp Light Mode)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Currency Format</label>
+          <select id="setting-currency" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-semibold focus:border-amber-500 focus:outline-none">
+            <option value="₹" selected>₹ (INR - Rupees)</option>
+            <option value="Rs. ">Rs. (Rupees)</option>
+            <option value="$">$ USD / CAD / AUD</option>
+            <option value="€">€ EUR (Euro)</option>
+            <option value="£">£ GBP (British Pound)</option>
+            <option value="AED ">AED (Emirates Dirham)</option>
+            <option value="SAR ">SAR (Saudi Riyal)</option>
+            <option value="₱">₱ PHP (Philippine Peso)</option>
+          </select>
+        </div>
+
+        <!-- SECRET COST CODE CIPHER KEYWORD (SANYO DELHI) -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-amber-500/40 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block font-bold text-amber-300 text-xs uppercase tracking-wide">
+              🔒 Secret Cost Code Cipher Keyword (10 Letters)
+            </label>
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono text-[10px] font-bold">1234567890</span>
+          </div>
+          <input 
+            type="text" 
+            id="setting-cipher-keyword" 
+            value="SANYODELHI" 
+            maxlength="10" 
+            class="w-full p-2.5 rounded-lg bg-slate-950 border border-amber-500/50 text-amber-300 font-mono font-bold uppercase tracking-widest text-sm focus:border-amber-400 focus:outline-none" 
+            placeholder="SANYODELHI"
+          />
+          <div class="text-[11px] text-slate-400 leading-snug">
+            Coded letters printed on box stickers instead of plain purchase price.
+            <div class="mt-1 font-mono text-[11px] text-emerald-400" id="cipher-live-demo-preview">
+              S=1, A=2, N=3, Y=4, O=5, D=6, E=7, L=8, H=9, I=0  (e.g. ₹1,450 = S-Y-O-I)
+            </div>
+          </div>
+        </div>
+
+        <!-- DEFAULT BARCODE STICKER FORMAT -->
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Default Box Barcode Sticker Format</label>
+          <select id="setting-sticker-format" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-semibold focus:border-amber-500 focus:outline-none">
+            <option value="dynamic_code" selected>🔘 Dynamic Retail Sticker (Secret Cost Code 'SANYO DELHI' • NO Printed Price - Recommended)</option>
+            <option value="fixed_price">🔘 Fixed MRP Sticker (With Printed Selling Price ₹)</option>
+          </select>
+          <p class="text-[11px] text-slate-400 mt-1">Dynamic stickers never need reprinting when prices change — computer screen shows live price on scan!</p>
+        </div>
+
+        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
+          <div>
+            <div class="font-bold text-slate-200">Audio Sound Effects</div>
+            <div class="text-xs text-slate-400">Play chimes on sales, returns, and transfers</div>
+          </div>
+          <input type="checkbox" id="setting-sound" class="w-5 h-5 accent-amber-500 rounded cursor-pointer" checked />
+        </div>
+
+        <div class="pt-2 flex flex-col gap-2">
+          <button type="submit" class="w-full btn-touch py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-sm transition-all shadow-md">
+            Save Settings
+          </button>
+          
+          <button type="button" id="btn-open-manage-taxonomy" class="w-full btn-touch py-2.5 bg-blue-950/70 hover:bg-blue-900/90 text-blue-300 border border-blue-700/50 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5">
+            <i data-lucide="tags" class="w-4 h-4 text-blue-400"></i>
+            <span>Manage Vehicle Brands & Part Categories</span>
+          </button>
+
+          <!-- BACKUP & RESTORE JSON -->
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button type="button" id="btn-export-backup-json" class="btn-touch py-2.5 px-2 bg-emerald-950/70 hover:bg-emerald-900 text-emerald-300 border border-emerald-600/50 font-bold rounded-xl text-xs flex items-center justify-center gap-1">
+              <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Export Backup</span>
+            </button>
+            <label class="btn-touch py-2.5 px-2 bg-purple-950/70 hover:bg-purple-900 text-purple-300 border border-purple-600/50 font-bold rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer">
+              <i data-lucide="upload" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Restore Backup</span>
+              <input type="file" id="import-backup-file-input" accept=".json" class="hidden" />
+            </label>
+          </div>
+
+          <button type="button" id="btn-reset-demo-data" class="w-full btn-touch py-2 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/50 font-bold rounded-xl text-xs transition-all">
+            Reset All Data to Demo Auto Parts
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- MODAL 5: LIVE BARCODE SCANNER & AUTO-SELL -->
+  <div id="barcode-scanner-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-3 md:p-6">
+    <div class="modal-enter w-full max-w-xl bg-slate-950 border-2 border-emerald-500/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-emerald-950 to-slate-900 px-5 py-4 border-b border-emerald-500/40 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 font-black flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <i data-lucide="scan" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-base md:text-lg font-black text-emerald-200 flex items-center gap-2">
+              <span>Barcode Auto-Sell Scanner</span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] uppercase font-bold border border-emerald-500/40">Live POS</span>
+            </h2>
+            <p class="text-xs text-emerald-400 font-medium">Scanned items are automatically sold and deducted from stock</p>
+          </div>
+        </div>
+        <button id="close-barcode-scanner-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-4 md:p-5 overflow-y-auto space-y-4 flex-1">
+        
+        <!-- CAMERA SELECTION & STATUS -->
+        <div class="flex flex-wrap items-center justify-between gap-2 no-print">
+          <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+            <i data-lucide="video" class="w-4 h-4 text-emerald-400"></i>
+            <select id="scanner-camera-select" class="flex-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs font-semibold focus:border-emerald-500 focus:outline-none">
+              <option value="">Detecting cameras...</option>
+            </select>
+          </div>
+          <button id="toggle-camera-facing-btn" class="btn-touch px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Restart Camera</span>
+          </button>
+        </div>
+
+        <!-- CAMERA VIEWFINDER ZONE -->
+        <div class="relative w-full min-h-[260px] md:min-h-[320px] rounded-2xl overflow-hidden bg-slate-900 border-2 border-emerald-500/60 flex items-center justify-center">
+          <!-- Html5Qrcode mount element -->
+          <div id="html5-qr-reader" class="w-full h-full min-h-[260px] flex items-center justify-center"></div>
+          
+          <!-- Animated Laser Scan Beam Overlay -->
+          <div class="scanner-laser"></div>
+        </div>
+
+        <!-- HARDWARE SCANNER STATUS BANNER (FOR PHYSICAL LASER GUNS) -->
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-slate-300 font-semibold">USB / Bluetooth Laser Gun: <strong class="text-emerald-400">Always Listening</strong></span>
+          </div>
+          <span class="text-[11px] text-slate-500">Pull trigger anywhere on screen</span>
+        </div>
+
+        <!-- LAST SCANNED SALE CONFIRMATION CARD (LIVE) -->
+        <div id="last-scanned-container" class="hidden p-3.5 rounded-xl bg-emerald-950/60 border-2 border-emerald-500 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i> AUTO-SOLD & INVENTORY UPDATED
+            </span>
+            <span id="last-scanned-time" class="text-xs font-mono text-emerald-300">Just now</span>
+          </div>
+          <div class="flex items-baseline justify-between">
+            <div id="last-scanned-name" class="font-bold text-slate-100 text-sm">Product Name</div>
+            <div id="last-scanned-price" class="font-black text-amber-400 font-mono text-base">₹ 0</div>
+          </div>
+          <div id="last-scanned-details" class="text-xs text-slate-400">Deducted from Floor 1 - Rack A-04</div>
+        </div>
+
+        <!-- MANUAL SCAN INPUT & INSTANT TEST BUTTONS -->
+        <div class="space-y-2 pt-1">
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+            Quick Test & Manual Barcode Entry
+          </label>
+          <div class="flex gap-2">
+            <input 
+              type="text" 
+              id="manual-barcode-input" 
+              placeholder="Enter SKU / Barcode (e.g. BP-TY-402 or 890100104021)..." 
+              class="flex-1 p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-mono text-xs md:text-sm focus:border-emerald-500 focus:outline-none uppercase"
+            />
+            <button id="btn-submit-manual-barcode" class="btn-touch px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1 shadow-md">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+              <span>Auto-Sell</span>
+            </button>
+          </div>
+
+          <!-- Instant 1-Tap Barcode Simulation Buttons -->
+          <div class="pt-2">
+            <div class="text-[11px] text-slate-400 font-medium mb-1.5">Tap any part below to simulate an instant barcode laser scan:</div>
+            <div class="flex flex-wrap gap-1.5" id="quick-test-barcodes-container">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+        <span class="text-xs text-slate-400">Inventory & Daily Outflow sync instantly</span>
+        <button onclick="document.getElementById('barcode-scanner-modal').classList.add('hidden')" class="btn-touch px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold">
+          Close Scanner
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 6: PRINT BARCODE LABELS & PRODUCT BOX STICKERS -->
+  <div id="print-barcode-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-3 md:p-6">
+    <div class="modal-enter w-full max-w-2xl bg-slate-950 border-2 border-blue-500/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-blue-950 to-slate-900 px-5 py-4 border-b border-blue-500/40 flex items-center justify-between no-print">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center shadow-lg shadow-blue-600/30">
+            <i data-lucide="printer" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-base md:text-lg font-black text-blue-100 flex items-center gap-2">
+              <span>Print Barcode & Box Label</span>
+              <span class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] uppercase font-bold border border-blue-500/40">Thermal & Sticker</span>
+            </h2>
+            <p class="text-xs text-blue-300/80">Stick directly on parts boxes with price, vehicle models & rack location</p>
+          </div>
+        </div>
+        <button id="close-print-barcode-modal-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-4 md:p-5 overflow-y-auto space-y-4 flex-1">
+        
+        <!-- LABEL CONTROLS (QUANTITY & FORMAT) -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-3 no-print">
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Number of Box Stickers to Print</label>
+            <div class="flex items-center gap-2">
+              <button id="btn-label-qty-minus" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold flex items-center justify-center">-</button>
+              <input type="number" id="print-label-qty" value="1" min="1" max="100" class="w-16 p-1.5 text-center font-black font-mono rounded-lg bg-slate-950 border border-slate-700 text-slate-100" />
+              <button id="btn-label-qty-plus" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold flex items-center justify-center">+</button>
+              <div class="flex gap-1 ml-2">
+                <button class="btn-quick-qty px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-xs text-slate-300 font-semibold" data-qty="1">1x</button>
+                <button class="btn-quick-qty px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-xs text-slate-300 font-semibold" data-qty="5">5x</button>
+                <button class="btn-quick-qty px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-xs text-slate-300 font-semibold" data-qty="10">10x</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Sticker Pricing & Cipher</label>
+            <select id="print-label-style" class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold focus:border-blue-500 focus:outline-none">
+              <option value="dynamic_code" selected>🔒 Dynamic (Secret Cipher 'SANYO DELHI' • NO Price Printed)</option>
+              <option value="fixed_price">🏷️ Fixed MRP (With Printed Selling Price ₹)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Label Paper Size</label>
+            <select id="print-label-size" class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold focus:border-blue-500 focus:outline-none">
+              <option value="50x35" selected>Standard Thermal (50mm x 35mm / 2" x 1.4")</option>
+              <option value="50x25">Compact Thermal (50mm x 25mm / 2" x 1")</option>
+              <option value="38x25">Mini Shelf Tag (38mm x 25mm / 1.5" x 1")</option>
+              <option value="75x50">Large Box Sticker (75mm x 50mm / 3" x 2")</option>
+              <option value="100x50">Giant Master Label (100mm x 50mm / 4" x 2")</option>
+              <option value="custom">📐 Custom Size (Set Exact mm Width x Height)</option>
+              <option value="a4-sheet">A4 Multi-Label Sticker Sheet</option>
+            </select>
+          </div>
+
+          <!-- CUSTOM SIZE INPUTS (SHOWN WHEN 'CUSTOM' IS SELECTED) -->
+          <div id="custom-label-dimensions-box" class="hidden items-center gap-2 p-2 rounded-lg bg-slate-950 border border-purple-500/50">
+            <div class="flex items-center gap-1">
+              <label class="text-[11px] font-bold text-purple-300">W (mm):</label>
+              <input type="number" id="custom-sticker-width" value="50" min="20" max="150" class="w-14 p-1 text-center font-bold rounded bg-slate-900 border border-slate-700 text-purple-200 text-xs" />
+            </div>
+            <span class="text-slate-500 font-bold">x</span>
+            <div class="flex items-center gap-1">
+              <label class="text-[11px] font-bold text-purple-300">H (mm):</label>
+              <input type="number" id="custom-sticker-height" value="35" min="15" max="150" class="w-14 p-1 text-center font-bold rounded bg-slate-900 border border-slate-700 text-purple-200 text-xs" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Header Display</label>
+            <select id="print-header-style" class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold focus:border-blue-500 focus:outline-none">
+              <option value="minimal" selected>📍 Minimal (Rack + Brand Only - Maximum Space for Car & Code)</option>
+              <option value="none">🚫 None (Completely Clean Header)</option>
+              <option value="full">🏢 Full Store Name Header</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- LIVE STICKER PREVIEW CONTAINER -->
+        <div>
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between no-print">
+            <span>Sticker Preview (Actual Print Output)</span>
+            <span class="text-[11px] text-emerald-400 font-normal">Ready for any Thermal or Standard Printer</span>
+          </div>
+
+          <div id="barcode-stickers-render-area" class="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-wrap gap-4 justify-center items-center overflow-x-auto">
+            <!-- Rendered via JavaScript -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between no-print">
+        <button onclick="document.getElementById('print-barcode-modal').classList.add('hidden')" class="btn-touch px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold">
+          Cancel
+        </button>
+        <button id="btn-trigger-print-labels" class="btn-touch px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-blue-600/30">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span>PRINT BARCODE STICKERS NOW</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 7: MANAGE VEHICLE BRANDS & PART CATEGORIES -->
+  <div id="taxonomy-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-3 md:p-6">
+    <div class="modal-enter w-full max-w-2xl bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-slate-900 to-slate-950 px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shadow-lg shadow-amber-500/20">
+            <i data-lucide="tags" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-base md:text-lg font-black text-slate-100">Vehicle Brands & Part Categories</h2>
+            <p class="text-xs text-slate-400">Add, edit, or remove custom car manufacturers and product types</p>
+          </div>
+        </div>
+        <button id="close-taxonomy-modal-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="px-5 pt-3 border-b border-slate-800 flex gap-3">
+        <button id="tab-btn-brands" class="taxonomy-tab-btn px-4 py-2 border-b-2 border-amber-400 font-bold text-amber-400 text-sm flex items-center gap-1.5 transition-all">
+          <i data-lucide="car" class="w-4 h-4"></i>
+          <span>Vehicle Brands</span>
+          <span id="badge-total-brands" class="px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded text-[11px] font-mono">0</span>
+        </button>
+        <button id="tab-btn-categories" class="taxonomy-tab-btn px-4 py-2 border-b-2 border-transparent font-bold text-slate-400 hover:text-slate-200 text-sm flex items-center gap-1.5 transition-all">
+          <i data-lucide="grid" class="w-4 h-4"></i>
+          <span>Part Categories</span>
+          <span id="badge-total-categories" class="px-1.5 py-0.2 bg-slate-800 text-slate-400 rounded text-[11px] font-mono">0</span>
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="p-5 overflow-y-auto flex-1 space-y-5">
+        
+        <!-- SECTION 1: VEHICLE BRANDS TAB -->
+        <div id="taxonomy-section-brands" class="space-y-4">
+          <!-- Add Brand Form -->
+          <form id="add-brand-form" class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-wrap gap-2 items-center justify-between">
+            <div class="flex-1 min-w-[220px]">
+              <label class="block text-[11px] font-bold text-slate-400 mb-1 uppercase tracking-wider">New Car / Vehicle Brand Name</label>
+              <input 
+                type="text" 
+                id="input-new-brand-name" 
+                required 
+                placeholder="e.g. Mahindra, Tata, Kia, MG, Skoda, BMW..." 
+                class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:border-amber-500 focus:outline-none"
+              />
+            </div>
+            <div class="pt-4 sm:pt-0">
+              <button type="submit" class="btn-touch px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-md">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Add Brand</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Brands List Grid -->
+          <div>
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Existing Vehicle Brands</div>
+            <div id="brands-manager-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: PART CATEGORIES TAB -->
+        <div id="taxonomy-section-categories" class="hidden space-y-4">
+          <!-- Add Category Form -->
+          <form id="add-category-form" class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-wrap gap-2 items-center justify-between">
+            <div class="flex-1 min-w-[220px]">
+              <label class="block text-[11px] font-bold text-slate-400 mb-1 uppercase tracking-wider">New Part Category Name</label>
+              <input 
+                type="text" 
+                id="input-new-category-name" 
+                required 
+                placeholder="e.g. Engine Oils, Sensors & ECU, AC & Heating, Exhaust..." 
+                class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:border-amber-500 focus:outline-none"
+              />
+            </div>
+            <div class="pt-4 sm:pt-0">
+              <button type="submit" class="btn-touch px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-md">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Add Category</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Categories List Grid -->
+          <div>
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Existing Part Categories</div>
+            <div id="categories-manager-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+        <span class="text-xs text-slate-400">Custom brands & categories appear in filters & add-part forms</span>
+        <button onclick="document.getElementById('taxonomy-modal').classList.add('hidden')" class="btn-touch px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 8: SUB-CATEGORY POPUP SELECTOR -->
+  <div id="subcategory-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-3 md:p-6">
+    <div class="modal-enter w-full max-w-xl bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-slate-900 to-slate-950 px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div id="subcategory-modal-badge" class="w-10 h-10 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center shadow-lg shadow-blue-600/20">
+            <i data-lucide="filter" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="subcategory-modal-brand-tag" class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[11px]">All Brands</span>
+              <h2 id="subcategory-modal-title" class="text-base md:text-lg font-black text-slate-100">Which Filter?</h2>
+            </div>
+            <p id="subcategory-modal-subtitle" class="text-xs text-slate-400">Tap a specific type below to instantly locate parts & prices</p>
+          </div>
+        </div>
+        <button id="close-subcategory-modal-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Quick Options Grid -->
+      <div class="p-5 overflow-y-auto flex-1">
+        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+          <span>Available Part Types</span>
+          <span class="text-[11px] text-amber-400">1-Tap Fast Filter</span>
+        </div>
+
+        <div id="subcategory-modal-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Injected dynamically via JavaScript -->
+        </div>
+      </div>
+
+      <!-- Footer with "Show All in this Category" -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+        <button id="btn-subcategory-show-all" class="btn-touch px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5">
+          <i data-lucide="grid" class="w-3.5 h-3.5 text-slate-400"></i>
+          <span>Show All in this Category</span>
+        </button>
+        <button onclick="document.getElementById('subcategory-modal').classList.add('hidden')" class="btn-touch px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-xl text-xs font-bold">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 9: CUSTOMER RETURN REASON MODAL (UNUSED VS DEFECTIVE) -->
+  <div id="customer-return-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-3 md:p-6">
+    <div class="modal-enter w-full max-w-lg bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-slate-900 to-slate-950 px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shadow-lg shadow-amber-500/20">
+            <i data-lucide="corner-up-left" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-base md:text-lg font-black text-slate-100">Customer Part Return</h2>
+            <p class="text-xs text-slate-400">Specify return condition for inventory and claims tracking</p>
+          </div>
+        </div>
+        <button id="close-customer-return-modal-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Part Summary Preview -->
+      <div class="p-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <div id="return-modal-part-name" class="font-extrabold text-sm text-slate-100">Product Name</div>
+          <div id="return-modal-part-meta" class="text-xs text-slate-400">SKU • Brand • Fitment</div>
+        </div>
+        <div class="text-right">
+          <div class="text-[10px] uppercase font-bold text-slate-500">Refund Price</div>
+          <div id="return-modal-part-price" class="text-lg font-black text-amber-400">₹ 0</div>
+        </div>
+      </div>
+
+      <!-- Return Type Selector (Unused vs Defective) -->
+      <div class="p-5 overflow-y-auto space-y-4 flex-1">
+        
+        <!-- OPTION 1: UNUSED / GOOD CONDITION RETURN -->
+        <div class="p-4 rounded-xl bg-slate-900 border-2 border-emerald-500/30 hover:border-emerald-500/80 transition-all flex flex-col gap-2">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+              <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="text-sm font-extrabold text-emerald-300">1. Unused / Good Condition Part</div>
+              <div class="text-xs text-slate-400">Customer didn't need it or bought wrong model. Part is 100% good & sellable.</div>
+            </div>
+          </div>
+          <div class="pt-2 flex items-center justify-between">
+            <span class="text-[11px] text-slate-400">Stores on Ground Counter for instant resale or restock</span>
+            <button id="btn-confirm-unused-return" class="btn-touch px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-md">
+              <i data-lucide="corner-up-left" class="w-3.5 h-3.5"></i>
+              <span>Accept Unused Return</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- OPTION 2: DEFECTIVE / DAMAGED PART RETURN -->
+        <div class="p-4 rounded-xl bg-slate-900 border-2 border-rose-500/30 hover:border-rose-500/80 transition-all flex flex-col gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+              <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="text-sm font-extrabold text-rose-300">2. Defective / Faulty Part</div>
+              <div class="text-xs text-slate-400">Manufacturing defect, noise, leak, or breakage. <strong>NOT sellable!</strong></div>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Defect Reason / Customer Complaint</label>
+            <input 
+              type="text" 
+              id="return-defect-reason" 
+              placeholder="e.g. Bearing noise on fitting, Shock oil leak, Brake judder, Cracked casing" 
+              class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:border-rose-500 focus:outline-none"
+            />
+          </div>
+
+          <div class="pt-1 flex items-center justify-between">
+            <span class="text-[11px] text-rose-400/80 font-medium">Quarantines for Wholesaler Credit Note</span>
+            <button id="btn-confirm-defective-return" class="btn-touch px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-md">
+              <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+              <span>Quarantine as Defective</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="p-3 bg-slate-900 border-t border-slate-800 flex justify-end">
+        <button onclick="document.getElementById('customer-return-modal').classList.add('hidden')" class="btn-touch px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-xl text-xs font-bold">
+          Cancel
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 10: DEFECTIVE PARTS & WHOLESALER CLAIMS REGISTER -->
+  <div id="defective-claims-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-3 md:p-6">
+    <div class="modal-enter w-full max-w-4xl bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-slate-900 to-slate-950 px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-600 text-white font-black flex items-center justify-center shadow-lg shadow-rose-600/20">
+            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-base md:text-lg font-black text-slate-100">Defective Parts & Wholesaler Claims Register</h2>
+            <p class="text-xs text-slate-400">Track quarantined broken returns and settle credit notes with distributors</p>
+          </div>
+        </div>
+        <button id="close-defective-claims-modal-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Stats Bar -->
+      <div class="p-4 bg-slate-900 border-b border-slate-800 grid grid-cols-3 gap-3 text-center">
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+          <div class="text-[10px] font-bold text-slate-400 uppercase">Pending Wholesaler Return</div>
+          <div id="claims-stat-pending" class="text-lg font-black text-rose-400">0 pcs</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+          <div class="text-[10px] font-bold text-slate-400 uppercase">Pending Claim Value (Cost)</div>
+          <div id="claims-stat-value" class="text-lg font-black text-amber-400">₹ 0</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+          <div class="text-[10px] font-bold text-slate-400 uppercase">Settled / Returned Claims</div>
+          <div id="claims-stat-settled" class="text-lg font-black text-emerald-400">0 pcs</div>
+        </div>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="px-5 pt-3 border-b border-slate-800 flex gap-3">
+        <button id="btn-claims-tab-pending" class="px-4 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-bold transition-all">
+          Pending Wholesaler Pick-up
+        </button>
+        <button id="btn-claims-tab-all" class="px-4 py-1.5 rounded-lg bg-slate-800 text-slate-400 text-xs font-bold transition-all">
+          All Defective History
+        </button>
+      </div>
+
+      <!-- Claims Table Area -->
+      <div class="p-5 overflow-y-auto flex-1">
+        <div class="rounded-xl border border-slate-800 overflow-hidden bg-slate-900/60">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900 text-slate-400 border-b border-slate-800 font-bold uppercase text-[10px]">
+              <tr>
+                <th class="p-3">Date & Time</th>
+                <th class="p-3">Part Details & SKU</th>
+                <th class="p-3">Brand / Wholesaler</th>
+                <th class="p-3">Defect Reason</th>
+                <th class="p-3">Cost Value</th>
+                <th class="p-3">Claim Status</th>
+                <th class="p-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="defective-claims-tbody" class="divide-y divide-slate-800">
+              <!-- Rendered via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+        <span class="text-xs text-slate-400">Defective parts are kept separate from sellable stock</span>
+        <div class="flex items-center gap-2">
+          <button id="btn-print-wholesaler-claim-sheet" class="btn-touch px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span>Print Wholesaler Debit Note</span>
+          </button>
+          <button onclick="document.getElementById('defective-claims-modal').classList.add('hidden')" class="btn-touch px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold">
+            Done
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 11: BULK PRICE REVISION & WHOLESALER CSV SYNC -->
+  <div id="price-revision-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-3 md:p-6">
+    <div class="modal-enter w-full max-w-4xl bg-slate-950 border border-purple-500/60 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-purple-950 to-slate-900 px-5 py-4 border-b border-purple-500/40 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-600 text-white font-black flex items-center justify-center shadow-lg shadow-purple-600/30">
+            <i data-lucide="trending-up" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-base md:text-lg font-black text-purple-100 flex items-center gap-2">
+              <span>Bulk Price Revision & Wholesaler Sync</span>
+              <span class="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] uppercase font-bold border border-purple-500/40">Catalog Engine</span>
+            </h2>
+            <p class="text-xs text-purple-300/80">Revise brand pricing in 1 click or import distributor CSV price sheets without manual editing</p>
+          </div>
+        </div>
+        <button id="close-price-revision-modal-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="px-5 pt-3 border-b border-slate-800 flex gap-2 bg-slate-900/60">
+        <button id="btn-tab-revision-brand" class="px-4 py-2 rounded-t-xl bg-purple-600 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+          <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+          <span>1. Brand Bulk Revision (+% / +₹)</span>
+        </button>
+        <button id="btn-tab-revision-csv" class="px-4 py-2 rounded-t-xl bg-slate-800 text-slate-400 text-xs font-bold transition-all flex items-center gap-1.5">
+          <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+          <span>2. Wholesaler CSV Import</span>
+        </button>
+        <button id="btn-tab-revision-history" class="px-4 py-2 rounded-t-xl bg-slate-800 text-slate-400 text-xs font-bold transition-all flex items-center gap-1.5">
+          <i data-lucide="history" class="w-3.5 h-3.5"></i>
+          <span>3. History & 1-Click Undo</span>
+        </button>
+      </div>
+
+      <!-- Modal Content Body -->
+      <div class="p-5 overflow-y-auto space-y-4 flex-1">
+        
+        <!-- SECTION 1: BRAND BULK REVISION WIZARD -->
+        <div id="revision-brand-section" class="space-y-4">
+          
+          <!-- Filters & Formula Controls -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1">Target Manufacturer / Brand</label>
+              <select id="revision-brand-select" class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:border-purple-500 focus:outline-none">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1">Part Category</label>
+              <select id="revision-category-select" class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:border-purple-500 focus:outline-none">
+                <option value="all">All Categories</option>
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1">Revision Method</label>
+              <select id="revision-type-select" class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:border-purple-500 focus:outline-none">
+                <option value="percent_inc">Percentage Increase (+ %)</option>
+                <option value="percent_dec">Percentage Decrease (- %)</option>
+                <option value="flat_inc">Flat Amount Increase (+ ₹)</option>
+                <option value="flat_dec">Flat Amount Decrease (- ₹)</option>
+                <option value="cost_margin">Set Selling Price = Cost + Margin %</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1" id="revision-value-label">Adjustment Value</label>
+              <div class="flex gap-2">
+                <input 
+                  type="number" 
+                  id="revision-value-input" 
+                  value="5" 
+                  step="0.5" 
+                  class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-amber-400 font-bold text-xs focus:border-purple-500 focus:outline-none"
+                />
+                <select id="revision-round-select" class="p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-300 text-xs font-semibold" title="Round to nearest neat retail figure">
+                  <option value="10">Round ₹10</option>
+                  <option value="50">Round ₹50</option>
+                  <option value="1">Exact ₹</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview Header -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Live Revision Preview</span>
+              <span id="revision-affected-count" class="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold border border-purple-500/30">0 Parts Selected</span>
+            </div>
+            <div class="text-xs text-slate-400">Review new prices before applying</div>
+          </div>
+
+          <!-- Live Diff Table -->
+          <div class="rounded-xl border border-slate-800 overflow-hidden bg-slate-900/60 max-h-60 overflow-y-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-900 text-slate-400 border-b border-slate-800 font-bold uppercase text-[10px] sticky top-0">
+                <tr>
+                  <th class="p-2.5">Part Details & SKU</th>
+                  <th class="p-2.5">Brand</th>
+                  <th class="p-2.5 text-right">Current Price</th>
+                  <th class="p-2.5 text-center">►</th>
+                  <th class="p-2.5 text-right">New Price</th>
+                  <th class="p-2.5 text-right">Change</th>
+                </tr>
+              </thead>
+              <tbody id="revision-preview-tbody" class="divide-y divide-slate-800 font-mono">
+                <!-- Rendered via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Action Button -->
+          <div class="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/40 flex items-center justify-between gap-3">
+            <div>
+              <div class="text-xs font-extrabold text-purple-200">Ready to update catalog?</div>
+              <div class="text-[11px] text-purple-300/80">Automatic rollback snapshot is created before applying.</div>
+            </div>
+            <button id="btn-apply-brand-revision" class="btn-touch px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-purple-950/50">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span>APPLY NEW PRICES TO ALL MATCHING PARTS</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- SECTION 2: WHOLESALER CSV IMPORTER -->
+        <div id="revision-csv-section" class="space-y-4 hidden">
+          
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="text-sm font-black text-slate-100">Upload Wholesaler Price Sheet (CSV / Excel)</h3>
+                <p class="text-xs text-slate-400">Match by Part Number or SKU and auto-update Selling Prices & Cost Rates</p>
+              </div>
+              <button id="btn-download-sample-csv" class="btn-touch px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-300 text-xs font-bold rounded-lg border border-slate-700 flex items-center gap-1">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span>Download Sample CSV</span>
+              </button>
+            </div>
+
+            <!-- File Drag Drop & Input -->
+            <div class="p-6 rounded-xl border-2 border-dashed border-slate-700 hover:border-purple-500 text-center transition-all bg-slate-950/60 cursor-pointer" id="csv-drop-zone">
+              <i data-lucide="upload-cloud" class="w-10 h-10 mx-auto mb-2 text-purple-400"></i>
+              <div class="text-xs font-bold text-slate-200">Click to Browse Excel (.xlsx, .xls) or CSV File, or Drag & Drop Here</div>
+              <div class="text-[11px] text-purple-300 mt-1 font-semibold">Supports Microsoft Excel (.xlsx, .xls) & CSV files directly from distributors!</div>
+              <input type="file" id="csv-file-input" accept=".xlsx, .xls, .csv, text/csv, text/plain, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="hidden" />
+            </div>
+
+            <!-- Or Paste Raw Excel / CSV Text -->
+            <div>
+              <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Or Copy & Paste directly from Excel (Ctrl+C & Ctrl+V):</label>
+              <textarea 
+                id="csv-raw-textarea" 
+                rows="3" 
+                placeholder="Copy any rows from Excel/Google Sheets and paste directly here...&#10;PartNumber	SellingPrice	CostPrice	Car&#10;OF-TY-101	420	240	Corolla&#10;SK-MN-602	1890	1480	Scorpio&#10;BP-TY-402	1650	1100	WR" 
+                class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 font-mono text-xs text-slate-200 focus:border-purple-500 focus:outline-none"
+              ></textarea>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button id="btn-parse-csv-preview" class="btn-touch px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-md">
+                <i data-lucide="columns" class="w-3.5 h-3.5"></i>
+                <span>1. Scan Sheet & Map Columns</span>
+              </button>
+              
+              <button id="btn-quick-rollback-last-import" class="btn-touch px-4 py-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-600/50 text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-md">
+                <i data-lucide="undo-2" class="w-3.5 h-3.5 text-rose-400"></i>
+                <span>⏪ Undo / Remove Last Imported Batch</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 1: INTERACTIVE COLUMN MAPPING WIZARD -->
+          <div id="csv-column-mapping-box" class="p-4 rounded-xl bg-slate-900 border-2 border-indigo-500/60 space-y-4 hidden">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
+                  <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs md:text-sm font-black text-indigo-300">Step 1: Organize & Map Your Excel Columns</h4>
+                  <p class="text-[11px] text-slate-400">Match each Excel column to its corresponding inventory field before importing.</p>
+                </div>
+              </div>
+              <span id="csv-detected-col-count" class="px-2.5 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 font-bold text-xs">0 Columns Detected</span>
+            </div>
+
+            <!-- Sheet Header / Sample Data Preview -->
+            <div class="space-y-1">
+              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Excel Raw Sample Row 1:</label>
+              <div id="csv-sample-row-preview" class="p-2 rounded-lg bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto whitespace-nowrap">
+                <!-- Injected via JavaScript -->
+              </div>
+            </div>
+
+            <!-- Mapping Selectors Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              
+              <!-- 1. Part Number / SKU -->
+              <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-1">
+                <label class="text-xs font-black text-amber-400 flex items-center gap-1">
+                  <span>Part Number / SKU</span>
+                  <span class="text-rose-400">*</span>
+                </label>
+                <select id="map-col-sku" class="w-full p-1.5 rounded-md bg-slate-900 border border-slate-700 text-slate-100 text-xs font-semibold focus:border-indigo-500 focus:outline-none">
+                  <!-- Injected via JavaScript -->
+                </select>
+              </div>
+
+              <!-- 2. Part Name / Description -->
+              <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-1">
+                <label class="text-xs font-black text-amber-400 flex items-center gap-1">
+                  <span>Part Name / Description</span>
+                  <span class="text-rose-400">*</span>
+                </label>
+                <select id="map-col-name" class="w-full p-1.5 rounded-md bg-slate-900 border border-slate-700 text-slate-100 text-xs font-semibold focus:border-indigo-500 focus:outline-none">
+                  <!-- Injected via JavaScript -->
+                </select>
+              </div>
+
+              <!-- 3. Selling Price / MRP -->
+              <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-1">
+                <label class="text-xs font-black text-amber-400 flex items-center gap-1">
+                  <span>Selling Price (MRP)</span>
+                  <span class="text-rose-400">*</span>
+                </label>
+                <select id="map-col-selling" class="w-full p-1.5 rounded-md bg-slate-900 border border-slate-700 text-slate-100 text-xs font-semibold focus:border-indigo-500 focus:outline-none">
+                  <!-- Injected via JavaScript -->
+                </select>
+              </div>
+
+              <!-- 4. Cost Price / Wholesaler Rate -->
+              <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-1">
+                <label class="text-xs font-bold text-slate-300">Cost Price / Buy Rate</label>
+                <select id="map-col-cost" class="w-full p-1.5 rounded-md bg-slate-900 border border-slate-700 text-slate-100 text-xs font-semibold focus:border-indigo-500 focus:outline-none">
+                  <option value="__AUTO_70__">★ Auto-Calculate (70% of Selling Price)</option>
+                  <!-- Columns injected via JavaScript -->
+                </select>
+              </div>
+
+              <!-- 5. Vehicle Brand -->
+              <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-1">
+                <label class="text-xs font-bold text-slate-300">Car Brand</label>
+                <select id="map-col-veh-brand" class="w-full p-1.5 rounded-md bg-slate-900 border border-slate-700 text-slate-100 text-xs font-semibold focus:border-indigo-500 focus:outline-none">
+                  <option value="__AUTO_NLP__">★ Auto-Detect from Part Name (Maruti, Hyundai, etc.)</option>
+                  <!-- Columns injected via JavaScript -->
+                </select>
+              </div>
+
+              <!-- 6. Category -->
+              <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-1">
+                <label class="text-xs font-bold text-slate-300">Category</label>
+                <select id="map-col-category" class="w-full p-1.5 rounded-md bg-slate-900 border border-slate-700 text-slate-100 text-xs font-semibold focus:border-indigo-500 focus:outline-none">
+                  <option value="__AUTO_NLP__">★ Auto-Detect from Part Name</option>
+                  <option value="Drive Shaft & Axle">Drive Shaft & Axle</option>
+                  <option value="Filters">Filters</option>
+                  <option value="Brakes">Brakes</option>
+                  <option value="Suspension">Suspension</option>
+                  <option value="Clutch">Clutch</option>
+                  <option value="Cooling">Cooling</option>
+                  <option value="Ignition">Ignition</option>
+                  <option value="Electrical">Electrical</option>
+                  <option value="Body & Wipers">Body & Wipers</option>
+                  <option value="Belts">Belts</option>
+                </select>
+              </div>
+
+            </div>
+
+            <!-- Validate & Proceed Button -->
+            <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+              <div class="text-[11px] text-slate-400">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 inline text-emerald-400"></i>
+                Every row will be verified for pricing & SKU validity before importing.
+              </div>
+              <button id="btn-validate-mapped-sheet" class="btn-touch px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-950/50">
+                <i data-lucide="scan-eye" class="w-4 h-4"></i>
+                <span>2. Validate All Rows & Preview Updates</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- INTERACTIVE VEHICLE ALIAS RESOLVER BOX (SOLUTION 2: TEACH ONCE, REMEMBER FOREVER) -->
+          <div id="csv-vehicle-alias-resolver-box" class="p-4 rounded-xl bg-slate-900 border-2 border-amber-500/60 space-y-3 hidden">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                  <i data-lucide="brain" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs md:text-sm font-black text-amber-300">Supplier Vehicle Codes Detected (Teach Once & Learn)</h4>
+                  <p class="text-[11px] text-slate-400">Map unknown manufacturer abbreviations to your clean vehicle names. The system will remember these forever!</p>
+                </div>
+              </div>
+              <span id="csv-unknown-alias-count" class="px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-xs">0 New Codes</span>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 overflow-hidden bg-slate-950">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-900 text-slate-400 border-b border-slate-800 font-bold uppercase text-[10px]">
+                  <tr>
+                    <th class="p-2.5">Supplier Raw Code</th>
+                    <th class="p-2.5">Occurrences</th>
+                    <th class="p-2.5">Auto-Suggested Vehicle</th>
+                    <th class="p-2.5 text-center">Remember Forever</th>
+                  </tr>
+                </thead>
+                <tbody id="csv-alias-resolver-tbody" class="divide-y divide-slate-800">
+                  <!-- Injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="flex justify-end">
+              <button id="btn-confirm-vehicle-aliases" class="btn-touch px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-lg flex items-center gap-1.5 shadow-md">
+                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                <span>Save Learned Codes & Proceed to Sync</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- CSV Reconciliation Results -->
+          <div id="csv-reconciliation-results" class="space-y-3 hidden">
+            <div class="grid grid-cols-3 gap-3 text-center">
+              <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[10px] uppercase font-bold text-slate-400">Matched Inventory Parts</div>
+                <div id="csv-matched-count" class="text-lg font-black text-emerald-400">0 pcs</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[10px] uppercase font-bold text-slate-400">Unmatched / New SKUs</div>
+                <div id="csv-unmatched-count" class="text-lg font-black text-amber-400">0 pcs</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[10px] uppercase font-bold text-slate-400">Total Rows in Sheet</div>
+                <div id="csv-total-count" class="text-lg font-black text-purple-400">0 rows</div>
+              </div>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 overflow-hidden bg-slate-900/60 max-h-56 overflow-y-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-900 text-slate-400 border-b border-slate-800 font-bold uppercase text-[10px] sticky top-0">
+                  <tr>
+                    <th class="p-2.5">SKU / Part #</th>
+                    <th class="p-2.5">Product Name</th>
+                    <th class="p-2.5 text-right">Old Price</th>
+                    <th class="p-2.5 text-right">New Price</th>
+                    <th class="p-2.5 text-right">New Cost</th>
+                    <th class="p-2.5 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="csv-preview-tbody" class="divide-y divide-slate-800 font-mono">
+                  <!-- Rendered via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/40 flex items-center justify-between gap-3">
+              <div>
+                <div class="text-xs font-extrabold text-emerald-200">Reconciliation Verified & Safe</div>
+                <div class="text-[11px] text-emerald-300/80">Only matched parts will be updated. Unmatched rows are skipped safely.</div>
+              </div>
+              <button id="btn-apply-csv-sync" class="btn-touch px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/50">
+                <i data-lucide="check-check" class="w-4 h-4"></i>
+                <span>SYNC ALL MATCHED PRICES NOW</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SECTION 3: REVISION HISTORY & 1-CLICK ROLLBACK -->
+        <div id="revision-history-section" class="space-y-4 hidden">
+          <div class="rounded-xl border border-slate-800 overflow-hidden bg-slate-900/60">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-900 text-slate-400 border-b border-slate-800 font-bold uppercase text-[10px]">
+                <tr>
+                  <th class="p-3">Date & Time</th>
+                  <th class="p-3">Action Description</th>
+                  <th class="p-3">Parts Modified</th>
+                  <th class="p-3 text-right">Rollback</th>
+                </tr>
+              </thead>
+              <tbody id="revision-history-tbody" class="divide-y divide-slate-800">
+                <!-- Rendered via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+        <span class="text-xs text-slate-400">Barcode stickers with Secret Cost Code 'SANYO DELHI' remain valid even after price changes!</span>
+        <button onclick="document.getElementById('price-revision-modal').classList.add('hidden')" class="btn-touch px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 12: SETTLE WHOLESALER RETURN & CREDIT NOTE MODAL -->
+  <div id="settle-wholesaler-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-3 md:p-6">
+    <div class="modal-enter w-full max-w-lg bg-slate-950 border border-emerald-500/60 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-emerald-950 to-slate-900 px-5 py-4 border-b border-emerald-500/40 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white font-black flex items-center justify-center shadow-lg shadow-emerald-600/30">
+            <i data-lucide="truck" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-base md:text-lg font-black text-emerald-100 flex items-center gap-2">
+              <span>Return Part to Wholesaler</span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] uppercase font-bold border border-emerald-500/40">Credit Note</span>
+            </h2>
+            <p class="text-xs text-emerald-300/80">Log defective handover to distributor van & record credit reference</p>
+          </div>
+        </div>
+        <button id="close-settle-wholesaler-modal-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <form id="settle-wholesaler-form" class="p-5 space-y-4">
+        <input type="hidden" id="settle-claim-id" />
+
+        <!-- Part & Defect Summary Card -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="flex justify-between items-start">
+            <div>
+              <div id="settle-part-name" class="font-black text-slate-100 text-sm">Part Name</div>
+              <div id="settle-part-sku" class="text-xs text-slate-400 font-mono">SKU-001 • Brand</div>
+            </div>
+            <div class="text-right">
+              <div class="text-[10px] uppercase text-slate-400 font-bold">Claim Value (Cost)</div>
+              <div id="settle-part-cost" class="text-base font-black font-mono text-amber-400">₹ 0</div>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-800/80 flex items-start gap-1.5 text-xs text-rose-300">
+            <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-400 flex-shrink-0 mt-0.5"></i>
+            <span id="settle-part-defect">Defect details</span>
+          </div>
+        </div>
+
+        <!-- Settlement Type (Credit Note vs New Replacement Piece) -->
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <label class="block text-xs font-bold text-slate-300">How is the Wholesaler settling this claim?</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 p-2.5 rounded-lg bg-slate-950 border border-slate-700 hover:border-emerald-500 cursor-pointer">
+              <input type="radio" name="settle-type" value="credit_note" checked class="accent-emerald-500" />
+              <div class="text-xs">
+                <div class="font-bold text-slate-200">💰 Credit Note / Refund</div>
+                <div class="text-[10px] text-slate-400">Claim settled, stock unchanged</div>
+              </div>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-lg bg-slate-950 border border-slate-700 hover:border-emerald-500 cursor-pointer">
+              <input type="radio" name="settle-type" value="replacement_unit" class="accent-emerald-500" />
+              <div class="text-xs">
+                <div class="font-bold text-emerald-300">📦 Fresh Replacement Box</div>
+                <div class="text-[10px] text-emerald-400/80">Auto +1 to Sellable Stock</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Credit Note / Return Voucher Input -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">
+            Wholesaler Credit Note / Voucher # <span class="text-slate-500 font-normal">(Optional)</span>
+          </label>
+          <input 
+            type="text" 
+            id="settle-credit-note-input" 
+            placeholder="e.g. CN-8182 or Bill # / Slip #" 
+            class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-mono text-sm uppercase focus:border-emerald-500 focus:outline-none"
+          />
+        </div>
+
+        <!-- Delivery / Handover Note -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">
+            Handover Note / Driver Name <span class="text-slate-500 font-normal">(Optional)</span>
+          </label>
+          <input 
+            type="text" 
+            id="settle-handover-note-input" 
+            placeholder="e.g. Handed to distributor driver Ramesh / Replacement pending" 
+            class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none"
+          />
+        </div>
+
+        <!-- Actions -->
+        <div class="pt-2 flex items-center gap-2">
+          <button type="button" onclick="document.getElementById('settle-wholesaler-modal').classList.add('hidden')" class="btn-touch flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs">
+            Cancel
+          </button>
+          <button type="submit" class="btn-touch flex-[2] py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Confirm Wholesaler Return</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- FLOATING TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-full max-w-md px-4 no-print">
+    <!-- Toasts injected dynamically -->
+  </div>
+
+  <!-- SUPABASE JS CLIENT SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- APPLICATION ENTRY SCRIPT -->
+  <script type="module" src="./src/js/app.js"></script>
+
+</body>
+</html>

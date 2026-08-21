@@ -1,0 +1,407 @@
+/* AutoParts Pro - Custom Design System & Aesthetics */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+
+:root, [data-theme="midnight"] {
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Theme: Midnight Executive (Professional Dark) */
+  --bg-main: #0b0f19;
+  --bg-header: rgba(15, 23, 42, 0.88);
+  --bg-surface: #111827;
+  --bg-card: #151e2e;
+  --bg-card-hover: #1c273c;
+  --border-color: rgba(255, 255, 255, 0.09);
+  --border-active: rgba(99, 102, 241, 0.5);
+
+  --accent-primary: #3b82f6;
+  --accent-gold: #f59e0b;
+  --accent-emerald: #10b981;
+  --accent-rose: #f43f5e;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --badge-ground-bg: rgba(245, 158, 11, 0.12);
+  --badge-ground-border: rgba(245, 158, 11, 0.4);
+  --badge-ground-text: #fbbf24;
+}
+
+[data-theme="titanium"] {
+  --bg-main: #0d0f12;
+  --bg-header: rgba(18, 21, 26, 0.92);
+  --bg-surface: #15181e;
+  --bg-card: #1a1e26;
+  --bg-card-hover: #222731;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-active: rgba(245, 158, 11, 0.6);
+
+  --accent-primary: #f59e0b;
+  --accent-gold: #fbbf24;
+  --accent-emerald: #10b981;
+  --accent-rose: #ef4444;
+
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+
+  --badge-ground-bg: rgba(245, 158, 11, 0.15);
+  --badge-ground-border: #f59e0b;
+  --badge-ground-text: #fef08a;
+}
+
+[data-theme="sapphire"] {
+  --bg-main: #060e1e;
+  --bg-header: rgba(10, 25, 47, 0.92);
+  --bg-surface: #0b1c38;
+  --bg-card: #0e2448;
+  --bg-card-hover: #143160;
+  --border-color: rgba(56, 189, 248, 0.15);
+  --border-active: rgba(56, 189, 248, 0.6);
+
+  --accent-primary: #0ea5e9;
+  --accent-gold: #f59e0b;
+  --accent-emerald: #10b981;
+  --accent-rose: #f43f5e;
+
+  --text-primary: #f0f9ff;
+  --text-secondary: #7dd3fc;
+  --text-muted: #38bdf8;
+
+  --badge-ground-bg: rgba(245, 158, 11, 0.15);
+  --badge-ground-border: rgba(245, 158, 11, 0.5);
+  --badge-ground-text: #fde047;
+}
+
+[data-theme="light"] {
+  --bg-main: #f8fafc;
+  --bg-header: rgba(255, 255, 255, 0.92);
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --border-color: #e2e8f0;
+  --border-active: #3b82f6;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  --badge-ground-bg: #fef3c7;
+  --badge-ground-border: #f59e0b;
+  --badge-ground-text: #92400e;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: var(--font-display);
+}
+
+/* Glassmorphism & Card Glows */
+.glass-panel {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="light"] .glass-panel {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e2e8f0;
+}
+
+.part-card {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, border-color 0.18s ease;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+}
+
+.part-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 15px rgba(59, 130, 246, 0.15);
+}
+
+/* Special Highlight Card when item is in Ground Floor Stash! */
+.part-card.has-ground-stash {
+  border: 2px solid #f59e0b !important;
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, var(--bg-card) 30%);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.22);
+}
+
+/* Big Touchable Buttons */
+.btn-touch {
+  min-height: 48px;
+  touch-action: manipulation;
+  user-select: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: all 0.12s ease;
+}
+
+.btn-touch:active {
+  transform: scale(0.96);
+}
+
+.btn-sell-huge {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+}
+
+.btn-sell-huge:hover {
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55);
+}
+
+.btn-return-huge {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+}
+
+.btn-return-huge:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+}
+
+/* Ground Stash Pulsing Banner Badge */
+@keyframes pulse-amber {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+    transform: scale(1.02);
+  }
+}
+
+.pulse-stash {
+  animation: pulse-amber 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes voice-recording-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.recording-pulse {
+  animation: voice-recording-ring 1.2s infinite;
+}
+
+/* Floor Badges */
+.badge-ground-floor {
+  background-color: rgba(245, 158, 11, 0.18);
+  border: 1px solid #f59e0b;
+  color: #fbbf24;
+}
+
+.badge-floor-1 {
+  background-color: rgba(59, 130, 246, 0.15);
+  border: 1px solid #3b82f6;
+  color: #93c5fd;
+}
+
+.badge-floor-2 {
+  background-color: rgba(147, 51, 234, 0.15);
+  border: 1px solid #9333ea;
+  color: #c084fc;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Smooth modal pop */
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-enter {
+  animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Notification Toast */
+@keyframes toastSlide {
+  from {
+    transform: translate(-50%, 100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.toast-in {
+  animation: toastSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Barcode Scanner Viewfinder & Laser Animations */
+@keyframes laser-sweep {
+  0% {
+    top: 5%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 90%;
+    opacity: 1;
+  }
+  100% {
+    top: 5%;
+    opacity: 0.8;
+  }
+}
+
+.scanner-laser {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0) 0%, rgba(239, 68, 68, 1) 50%, rgba(239, 68, 68, 0) 100%);
+  box-shadow: 0 0 12px 3px rgba(239, 68, 68, 0.8);
+  animation: laser-sweep 2s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes scan-flash {
+  0% {
+    background-color: rgba(16, 185, 129, 0.5);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.scan-success-flash {
+  animation: scan-flash 0.4s ease-out;
+}
+
+/* Product Box Barcode Sticker Card Styling */
+.product-box-sticker {
+  background: #ffffff;
+  color: #000000;
+  width: 240px;
+  min-height: 155px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px dashed #94a3b8;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.product-box-sticker.compact {
+  width: 220px;
+  min-height: 125px;
+  padding: 6px 8px;
+}
+
+.sticker-barcode-svg {
+  width: 100%;
+  height: 42px;
+  margin: 2px 0;
+}
+
+/* Print Optimization for Daily Outflow Ledger & Barcode Stickers */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+
+  /* When printing Ledger */
+  #print-area, #print-area * {
+    visibility: visible;
+  }
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    color: black !important;
+    background: white !important;
+  }
+
+  /* When printing Barcode Stickers */
+  #barcode-stickers-render-area, #barcode-stickers-render-area * {
+    visibility: visible;
+  }
+
+  #barcode-stickers-render-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .product-box-sticker {
+    box-shadow: none !important;
+    border: 1px solid #000000 !important;
+    margin: 4px;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
