@@ -219,21 +219,77 @@ export class InventoryManager {
     const filtered = this.getFilteredProducts();
 
     if (filtered.length === 0) {
-      container.innerHTML = `
-        <div class="col-span-full py-16 text-center">
-          <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-500">
-            <i data-lucide="package-x" class="w-8 h-8"></i>
+      if (this.app.products.length === 0) {
+        // Completely Fresh Store State
+        container.innerHTML = `
+          <div class="col-span-full py-12 px-6 text-center max-w-2xl mx-auto rounded-3xl bg-slate-900/90 border-2 border-dashed border-emerald-500/40 shadow-2xl">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <i data-lucide="sparkles" class="w-10 h-10 animate-bounce"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-100 tracking-tight">Your Shop Catalog is Fresh & Clean!</h3>
+            <p class="text-sm text-slate-400 mt-2 max-w-lg mx-auto">
+              All demo parts and sample records have been cleared. AutoParts Pro is now ready for your shop's actual inventory.
+            </p>
+            
+            <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto text-left">
+              <button 
+                onclick="window.app.inventoryManager.openAddPartModal()" 
+                class="btn-touch p-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black flex items-center gap-3 shadow-lg shadow-amber-500/20 group transition-all"
+              >
+                <div class="w-9 h-9 rounded-lg bg-slate-950/20 flex items-center justify-center">
+                  <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="text-sm font-extrabold">+ Add Auto Part</div>
+                  <div class="text-[11px] text-slate-900/70 font-semibold">Enter part name & rack location</div>
+                </div>
+              </button>
+
+              <button 
+                onclick="window.app.priceRevisionManager.openPriceRevisionModal('csv')" 
+                class="btn-touch p-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-3 shadow-md group transition-all"
+              >
+                <div class="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center">
+                  <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="text-sm font-extrabold">Import Excel / CSV</div>
+                  <div class="text-[11px] text-slate-400">Bulk upload distributor sheets</div>
+                </div>
+              </button>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-slate-800 flex items-center justify-center gap-4 text-xs text-slate-500">
+              <button onclick="window.app.settingsManager.executeReloadDemoData()" class="hover:text-amber-400 transition-colors flex items-center gap-1">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                <span>Reload Demo Parts (For Testing)</span>
+              </button>
+              <span>•</span>
+              <label class="hover:text-purple-400 transition-colors flex items-center gap-1 cursor-pointer">
+                <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                <span>Restore .JSON Backup</span>
+                <input type="file" onchange="window.app.settingsManager.importDataBackup(this.files[0])" accept=".json" class="hidden" />
+              </label>
+            </div>
           </div>
-          <h3 class="text-xl font-bold text-slate-200">No Auto Parts Found</h3>
-          <p class="text-sm text-slate-400 max-w-md mx-auto mt-1">
-            No parts match "${this.app.searchQuery || this.app.selectedBrand || 'current filters'}". Try speaking or searching with a shorter term like "Brake" or "Honda".
-          </p>
-          <button id="clear-all-filters-empty-btn" class="mt-5 btn-touch px-6 py-2.5 bg-amber-500 text-slate-950 font-bold rounded-xl text-sm hover:bg-amber-400 shadow-lg shadow-amber-500/20 flex items-center gap-2 mx-auto">
-            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-            <span>Clear All Filters & Show All Parts</span>
-          </button>
-        </div>
-      `;
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="col-span-full py-16 text-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-500">
+              <i data-lucide="package-x" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-200">No Auto Parts Found</h3>
+            <p class="text-sm text-slate-400 max-w-md mx-auto mt-1">
+              No parts match "${this.app.searchQuery || this.app.selectedBrand || 'current filters'}". Try speaking or searching with a shorter term like "Brake" or "Honda".
+            </p>
+            <button id="clear-all-filters-empty-btn" class="mt-5 btn-touch px-6 py-2.5 bg-amber-500 text-slate-950 font-bold rounded-xl text-sm hover:bg-amber-400 shadow-lg shadow-amber-500/20 flex items-center gap-2 mx-auto">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              <span>Clear All Filters & Show All Parts</span>
+            </button>
+          </div>
+        `;
+      }
       if (window.lucide) lucide.createIcons();
       return;
     }

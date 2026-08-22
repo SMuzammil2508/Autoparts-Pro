@@ -562,18 +562,23 @@
     </div>
   </div>
 
-  <!-- MODAL 4: SHOP SETTINGS -->
+  <!-- MODAL 4: SHOP SETTINGS (SCROLLABLE & RESPONSIVE) -->
   <div id="settings-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-3 md:p-6">
-    <div class="modal-enter w-full max-w-md bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <div class="modal-enter w-full max-w-md bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
       
-      <div class="bg-slate-900 px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-        <h2 class="text-base md:text-lg font-black text-slate-100">Shop Settings</h2>
+      <div class="bg-slate-900 px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+          </div>
+          <h2 class="text-base md:text-lg font-black text-slate-100">Shop Settings</h2>
+        </div>
         <button id="close-settings-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <form id="settings-form" class="p-5 space-y-4 text-xs md:text-sm">
+      <form id="settings-form" class="p-5 space-y-4 text-xs md:text-sm overflow-y-auto flex-1">
         <div>
           <label class="block font-bold text-slate-300 mb-1">Store Name</label>
           <input type="text" id="setting-store-name" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-semibold focus:border-amber-500 focus:outline-none" />
@@ -668,11 +673,120 @@
             </label>
           </div>
 
-          <button type="button" id="btn-reset-demo-data" class="w-full btn-touch py-2 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/50 font-bold rounded-xl text-xs transition-all">
-            Reset All Data to Demo Auto Parts
-          </button>
+          <!-- PRODUCTION STORE SETUP (START FRESH) -->
+          <div class="p-3 rounded-xl bg-rose-950/30 border border-rose-800/40 mt-1 flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-extrabold text-rose-300 text-xs">Production Setup (Real Shop)</div>
+                <div class="text-[11px] text-slate-400">Wipe demo catalog & start with empty inventory</div>
+              </div>
+              <i data-lucide="shield-alert" class="w-4 h-4 text-rose-400"></i>
+            </div>
+            
+            <button type="button" id="btn-open-start-fresh-modal" class="w-full btn-touch py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span>Start Fresh for Real Shop (Clean Slate)</span>
+            </button>
+            
+            <button type="button" id="btn-reset-demo-data" class="w-full btn-touch py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 font-semibold rounded-lg text-[11px] transition-all flex items-center justify-center gap-1">
+              <i data-lucide="rotate-ccw" class="w-3 h-3 text-slate-500"></i>
+              <span>Reload Demo Sample Parts (For Testing)</span>
+            </button>
+          </div>
         </div>
       </form>
+
+    </div>
+  </div>
+
+  <!-- MODAL: START FRESH / FACTORY RESET CONFIRMATION (SECURITY GUARDED) -->
+  <div id="modal-start-fresh-security" class="fixed inset-0 z-[70] bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="modal-enter w-full max-w-lg bg-slate-950 border-2 border-rose-500/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-rose-950 to-slate-900 px-5 py-4 border-b border-rose-500/30 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-600/20 border border-rose-500/50 flex items-center justify-center text-rose-400">
+            <i data-lucide="shield-alert" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-white">Start Fresh for Real Shop</h3>
+            <p class="text-xs text-rose-300/80">Wipe demo catalog & initialize clean store</p>
+          </div>
+        </div>
+        <button type="button" id="btn-close-start-fresh-modal" class="btn-touch p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto space-y-4 text-xs text-slate-300 flex-1">
+        
+        <!-- Zero Risk Safety Backup Notice -->
+        <div class="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/40 flex items-start gap-3">
+          <i data-lucide="shield-check" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
+          <div>
+            <div class="font-bold text-emerald-300 text-xs">Automatic Safety Backup Guaranteed</div>
+            <div class="text-[11px] text-emerald-400/80 mt-0.5">
+              Before clearing anything, a full JSON backup file will automatically download to your computer so you can restore anytime if needed.
+            </div>
+          </div>
+        </div>
+
+        <!-- Warning list of actions -->
+        <div class="p-3.5 rounded-xl bg-rose-950/30 border border-rose-500/30 space-y-2">
+          <div class="font-bold text-rose-300 text-xs flex items-center gap-1.5">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i>
+            <span>The following sample records will be erased:</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-400 text-[11px] pl-1">
+            <li>All 30 sample demo auto parts (Stock reset to 0)</li>
+            <li>Daily sales outflow book & demo transaction history</li>
+            <li>Defective wholesaler claims bin records</li>
+            <li>Counter stash queue</li>
+          </ul>
+        </div>
+
+        <!-- Option: Preserve Taxonomy -->
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-3">
+          <div>
+            <div class="font-bold text-slate-200 text-xs">Keep Standard Car Brands & Part Categories</div>
+            <div class="text-[11px] text-slate-400">Keep Maruti, Hyundai, Tata & Brakes, Filters ready to pick</div>
+          </div>
+          <input type="checkbox" id="check-keep-taxonomy-on-reset" class="w-5 h-5 accent-amber-500 rounded cursor-pointer" checked />
+        </div>
+
+        <!-- Security Phrase Confirmation Box -->
+        <div class="pt-2 border-t border-slate-800">
+          <label class="block font-bold text-slate-200 text-xs mb-1.5">
+            To prevent accidental clicks, type <span class="font-mono text-rose-400 bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-800/60 font-black">CLEAR DEMO DATA</span> below:
+          </label>
+          <input 
+            type="text" 
+            id="input-security-wipe-phrase" 
+            placeholder="Type: CLEAR DEMO DATA" 
+            autocomplete="off"
+            class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-mono text-sm focus:border-rose-500 focus:outline-none uppercase tracking-wider"
+          />
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex items-center gap-3">
+        <button type="button" id="btn-cancel-start-fresh" class="btn-touch flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs">
+          Cancel (Keep Demo Data)
+        </button>
+        <button 
+          type="button" 
+          id="btn-confirm-factory-wipe" 
+          disabled 
+          class="btn-touch flex-1 py-3 bg-rose-700/50 text-white/60 font-black rounded-xl text-sm transition-all opacity-50 cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <span>Wipe & Start Fresh</span>
+        </button>
+      </div>
 
     </div>
   </div>
@@ -1773,7 +1887,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- APPLICATION ENTRY SCRIPT (Cache-Busted) -->
-  <script type="module" src="./src/js/app.js?v=1.0.2"></script>
+  <script type="module" src="./src/js/app.js?v=1.0.4"></script>
 
 </body>
 </html>

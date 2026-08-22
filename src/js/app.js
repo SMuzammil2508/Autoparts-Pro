@@ -1385,16 +1385,39 @@ class AutoPartsApp {
     const resetDemoBtn = document.getElementById('btn-reset-demo-data');
     if (resetDemoBtn) {
       resetDemoBtn.addEventListener('click', () => {
-        if (confirm("Reset inventory and sales book back to fresh demo data?")) {
-          const fresh = this.storage.resetToDemoData();
-          this.products = fresh.products;
-          this.outflowLog = fresh.outflowLog;
-          this.settings = fresh.settings;
-          this.renderProducts();
-          this.updateHeaderStats();
-          this.settingsManager.closeSettingsModal();
-          this.showToast("Inventory & Outflow Book reset to demo catalog!", "success");
+        if (confirm("Restore the 30 sample demo auto parts, sample sales, and claim records?")) {
+          this.settingsManager.executeReloadDemoData();
         }
+      });
+    }
+
+    // Start Fresh Security Modal Controls
+    const openStartFreshBtn = document.getElementById('btn-open-start-fresh-modal');
+    if (openStartFreshBtn) {
+      openStartFreshBtn.addEventListener('click', () => this.settingsManager.openStartFreshModal());
+    }
+
+    const closeStartFreshBtn = document.getElementById('btn-close-start-fresh-modal');
+    if (closeStartFreshBtn) {
+      closeStartFreshBtn.addEventListener('click', () => this.settingsManager.closeStartFreshModal());
+    }
+
+    const cancelStartFreshBtn = document.getElementById('btn-cancel-start-fresh');
+    if (cancelStartFreshBtn) {
+      cancelStartFreshBtn.addEventListener('click', () => this.settingsManager.closeStartFreshModal());
+    }
+
+    const securityPhraseInput = document.getElementById('input-security-wipe-phrase');
+    if (securityPhraseInput) {
+      securityPhraseInput.addEventListener('input', (e) => {
+        this.settingsManager.handleSecurityPhraseInput(e.target.value);
+      });
+    }
+
+    const confirmFactoryWipeBtn = document.getElementById('btn-confirm-factory-wipe');
+    if (confirmFactoryWipeBtn) {
+      confirmFactoryWipeBtn.addEventListener('click', () => {
+        this.settingsManager.executeFactoryStartFresh();
       });
     }
 

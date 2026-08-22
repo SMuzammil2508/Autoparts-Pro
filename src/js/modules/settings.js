@@ -183,4 +183,92 @@ export class SettingsManager {
     };
     reader.readAsText(file);
   }
+
+  openStartFreshModal() {
+    this.app.sound.playClick();
+    const modal = document.getElementById('modal-start-fresh-security');
+    if (!modal) return;
+
+    const inputPhrase = document.getElementById('input-security-wipe-phrase');
+    const confirmBtn = document.getElementById('btn-confirm-factory-wipe');
+    if (inputPhrase) inputPhrase.value = '';
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.className = "btn-touch flex-1 py-3 bg-rose-700/50 text-white/60 font-black rounded-xl text-sm transition-all opacity-50 cursor-not-allowed";
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  closeStartFreshModal() {
+    const modal = document.getElementById('modal-start-fresh-security');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  }
+
+  handleSecurityPhraseInput(val) {
+    const confirmBtn = document.getElementById('btn-confirm-factory-wipe');
+    if (!confirmBtn) return;
+    const clean = (val || '').trim().toUpperCase();
+    if (clean === 'CLEAR DEMO DATA' || clean === 'START FRESH') {
+      confirmBtn.disabled = false;
+      confirmBtn.className = "btn-touch flex-1 py-3 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl text-sm transition-all shadow-lg shadow-rose-600/30 cursor-pointer animate-pulse";
+    } else {
+      confirmBtn.disabled = true;
+      confirmBtn.className = "btn-touch flex-1 py-3 bg-rose-700/50 text-white/60 font-black rounded-xl text-sm transition-all opacity-50 cursor-not-allowed";
+    }
+  }
+
+  executeFactoryStartFresh() {
+    // 1. Auto-download safety backup first!
+    this.exportDataBackup();
+
+    // 2. Read taxonomy preference checkbox
+    const keepTaxonomyCheck = document.getElementById('check-keep-taxonomy-on-reset');
+    const keepTaxonomy = keepTaxonomyCheck ? keepTaxonomyCheck.checked !== false : true;
+
+    // 3. Clear data
+    const freshState = this.app.storage.startFreshProductionData({ keepTaxonomy });
+    this.app.products = freshState.products;
+    this.app.outflowLog = freshState.outflowLog;
+    this.app.defectiveReturns = freshState.defectiveReturns;
+    this.app.vehicleBrands = freshState.vehicleBrands;
+    this.app.categories = freshState.categories;
+
+    // 4. Update UI
+    this.closeStartFreshModal();
+    this.closeSettingsModal();
+    this.app.renderBrandChips();
+    this.app.renderCategoryChips();
+    this.app.renderSubCategoryChips();
+    this.app.renderProducts();
+    this.app.updateHeaderStats();
+
+    this.app.sound.playSaleChime();
+    this.app.showToast("✅ Store initialized fresh! Ready to enter your shop's inventory.", "success");
+  }
+
+  executeReloadDemoData() {
+    this.app.sound.playClick();
+    const freshState = this.app.storage.resetToDemoData();
+    this.app.products = freshState.products;
+    this.app.outflowLog = freshState.outflowLog;
+    this.app.defectiveReturns = freshState.defectiveReturns;
+    this.app.vehicleBrands = freshState.vehicleBrands;
+    this.app.categories = freshState.categories;
+    this.app.settings = freshState.settings;
+
+    this.closeSettingsModal();
+    this.app.renderBrandChips();
+    this.app.renderCategoryChips();
+    this.app.renderSubCategoryChips();
+    this.app.renderProducts();
+    this.app.updateHeaderStats();
+
+    this.app.showToast("Demo catalog & sample records restored!", "info");
+  }
 }

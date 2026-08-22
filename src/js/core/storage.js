@@ -126,7 +126,18 @@ export class StorageManager {
   // --- PRODUCTS ---
   static getProducts() {
     const local = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-    let cached = local ? JSON.parse(local) : INITIAL_PARTS_DATA;
+    if (local !== null) {
+      try {
+        return JSON.parse(local);
+      } catch (e) {
+        console.error("Error parsing local products:", e);
+      }
+    }
+    const isClean = localStorage.getItem('autoparts_is_production_clean') === 'true';
+    if (isClean) {
+      return [];
+    }
+    let cached = INITIAL_PARTS_DATA;
 
     // Trigger async cloud fetch & seed in background
     this.syncProductsFromCloud();
@@ -453,7 +464,30 @@ export class StorageManager {
     return newEntry;
   }
 
+  static startFreshProductionData(options = { keepTaxonomy: true }) {
+    localStorage.setItem('autoparts_is_production_clean', 'true');
+    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.OUTFLOW_LOG, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.DEFECTIVE_RETURNS, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.PRICE_HISTORY, JSON.stringify([]));
+
+    if (!options.keepTaxonomy) {
+      localStorage.removeItem(STORAGE_KEYS.VEHICLE_BRANDS);
+      localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
+    }
+
+    return {
+      products: [],
+      outflowLog: [],
+      defectiveReturns: [],
+      vehicleBrands: this.getVehicleBrands(),
+      categories: this.getCategories(),
+      settings: this.getSettings()
+    };
+  }
+
   static resetToDemoData() {
+    localStorage.removeItem('autoparts_is_production_clean');
     localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
     localStorage.removeItem(STORAGE_KEYS.OUTFLOW_LOG);
     localStorage.removeItem(STORAGE_KEYS.SETTINGS);
@@ -462,7 +496,7 @@ export class StorageManager {
     localStorage.removeItem(STORAGE_KEYS.DEFECTIVE_RETURNS);
     localStorage.removeItem(STORAGE_KEYS.PRICE_HISTORY);
     return {
-      products: this.getProducts(),
+      products: INITIAL_PARTS_DATA,
       vehicleBrands: this.getVehicleBrands(),
       categories: this.getCategories(),
       outflowLog: this.getOutflows(),
