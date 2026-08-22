@@ -125,37 +125,114 @@ export class StorageManager {
 
   // --- PRODUCTS ---
   static getProducts() {
+    // 1. Return local cache immediately for 0ms startup
+    let cached = null;
     const local = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
     if (local !== null) {
       try {
-        return JSON.parse(local);
+        cached = JSON.parse(local);
       } catch (e) {
         console.error("Error parsing local products:", e);
       }
     }
-    const isClean = localStorage.getItem('autoparts_is_production_clean') === 'true';
-    if (isClean) {
-      return [];
-    }
-    let cached = INITIAL_PARTS_DATA;
 
-    // Trigger async cloud fetch & seed in background
+    if (cached === null) {
+      const isClean = localStorage.getItem('autoparts_is_production_clean') === 'true';
+      cached = isClean ? [] : INITIAL_PARTS_DATA;
+    }
+
+    // 2. ALWAYS trigger async cloud synchronization in background!
     this.syncProductsFromCloud();
     return cached;
   }
 
-  static async syncProductsFromCloud() {
+  static async initCloudSync(appContext) {
+    this.app = appContext;
+    
+    // Initial fetch from cloud for all modules
+    await this.syncProductsFromCloud();
+    await this.syncOutflowsFromCloud();
+    await this.syncDefectiveReturnsFromCloud();
+
+    // Set up Realtime WebSockets
+    this.setupRealtimeSubscriptions(appContext);
+
+    // Auto re-sync when tab becomes visible or internet reconnects
+    window.addEventListener('online', () => {
+      console.log("🌐 Internet reconnected — syncing with Supabase cloud...");
+      this.syncProductsFromCloud();
+      this.syncOutflowsFromCloud();
+    });
+
+    window.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        this.syncProductsFromCloud();
+        this.syncOutflowsFromCloud();
+      }
+    });
+  }
+
+  static updateSyncBadge(isLive, labelText = "Live Cloud Synced") {
+    const badge = document.getElementById('cloud-sync-status-badge');
+    const label = document.getElementById('cloud-sync-status-text');
+    const dot = document.getElementById('cloud-sync-status-dot');
+    if (!badge) return;
+
+    if (isLive) {
+      badge.classList.remove('hidden');
+      badge.classList.add('flex');
+      if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0";
+      if (label) label.textContent = labelText;
+      badge.className = "btn-touch flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 shadow-sm";
+    } else {
+      if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 shrink-0";
+      if (label) label.textContent = labelText || "Offline Cache";
+      badge.className = "btn-touch flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-amber-950/70 border border-amber-500/50 text-amber-300 shadow-sm";
+    }
+  }
+
+  static setupRealtimeSubscriptions(appContext) {
     const client = this.getClient();
-    if (!client || !navigator.onLine) return;
+    if (!client) return;
 
     try {
+      client
+        .channel('public:db_sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
+          console.log("⚡ [Realtime] Cloud product change detected:", payload);
+          this.syncProductsFromCloud();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'outflow_logs' }, (payload) => {
+          console.log("⚡ [Realtime] Cloud sales outflow detected:", payload);
+          this.syncOutflowsFromCloud();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'defective_returns' }, (payload) => {
+          console.log("⚡ [Realtime] Cloud claim update detected:", payload);
+          this.syncDefectiveReturnsFromCloud();
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log("⚡ Realtime Multi-Device Sync connected successfully!");
+            this.updateSyncBadge(true, "Live Cloud Synced");
+          }
+        });
+    } catch (err) {
+      console.warn("Realtime subscription warning:", err);
+    }
+  }
+
+  static async syncProductsFromCloud() {
+    const client = this.getClient();
+    if (!client || !navigator.onLine) {
+      this.updateSyncBadge(false, "Offline Cache");
+      return;
+    }
+
+    try {
+      this.updateSyncBadge(true, "Syncing...");
       const { data, error } = await client.from('products').select('*');
       if (!error && data) {
-        if (data.length === 0) {
-          // Cloud table is empty: Seed default 30 parts to Supabase
-          console.log("🌱 Seeding 30 default auto parts to Supabase cloud...");
-          await this.seedProductsToCloud(INITIAL_PARTS_DATA);
-        } else {
+        if (data.length > 0) {
           // Map DB snake_case columns back to JS camelCase
           const mapped = data.map(p => ({
             id: p.id,
@@ -178,16 +255,36 @@ export class StorageManager {
             imageUrl: p.image_url,
             lastPriceUpdated: p.last_price_updated
           }));
+
           localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(mapped));
+          localStorage.setItem('autoparts_is_production_clean', 'true');
+          
           if (window.app && window.app.products) {
             window.app.products = mapped;
             window.app.renderProducts();
             window.app.updateHeaderStats();
           }
+          this.updateSyncBadge(true, "Live Cloud Synced");
+        } else {
+          // Cloud table is empty: Check if production clean
+          const isClean = localStorage.getItem('autoparts_is_production_clean') === 'true';
+          if (!isClean) {
+            console.log("🌱 Seeding default auto parts to Supabase cloud...");
+            await this.seedProductsToCloud(INITIAL_PARTS_DATA);
+          } else {
+            localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+            if (window.app && window.app.products) {
+              window.app.products = [];
+              window.app.renderProducts();
+              window.app.updateHeaderStats();
+            }
+          }
+          this.updateSyncBadge(true, "Live Cloud Synced");
         }
       }
     } catch (err) {
       console.warn("Cloud product sync error:", err);
+      this.updateSyncBadge(false, "Offline Cache");
     }
   }
 
@@ -312,6 +409,37 @@ export class StorageManager {
     return JSON.parse(data);
   }
 
+  static async syncOutflowsFromCloud() {
+    const client = this.getClient();
+    if (!client || !navigator.onLine) return;
+
+    try {
+      const { data, error } = await client.from('outflow_logs').select('*');
+      if (!error && data && data.length > 0) {
+        const mapped = data.map(s => ({
+          id: s.id,
+          partId: s.part_id,
+          partName: s.part_name,
+          partNumber: s.part_number,
+          brand: s.brand,
+          quantity: s.quantity,
+          sellingPrice: parseFloat(s.selling_price) || 0,
+          totalAmount: parseFloat(s.total_amount) || 0,
+          dateStr: s.date_str,
+          timeStr: s.time_str,
+          notes: s.notes || ''
+        }));
+        localStorage.setItem(STORAGE_KEYS.OUTFLOW_LOG, JSON.stringify(mapped));
+        if (window.app) {
+          window.app.outflowLog = mapped;
+          window.app.updateHeaderStats();
+        }
+      }
+    } catch (e) {
+      console.warn("Outflow sync warning:", e);
+    }
+  }
+
   static saveOutflows(log) {
     localStorage.setItem(STORAGE_KEYS.OUTFLOW_LOG, JSON.stringify(log));
     const client = this.getClient();
@@ -342,6 +470,41 @@ export class StorageManager {
       return demo;
     }
     return JSON.parse(data);
+  }
+
+  static async syncDefectiveReturnsFromCloud() {
+    const client = this.getClient();
+    if (!client || !navigator.onLine) return;
+
+    try {
+      const { data, error } = await client.from('defective_returns').select('*');
+      if (!error && data && data.length > 0) {
+        const mapped = data.map(r => ({
+          id: r.id,
+          partId: r.part_id,
+          partName: r.part_name,
+          partNumber: r.part_number,
+          brand: r.brand,
+          vehicleBrand: r.vehicle_brand,
+          quantity: r.quantity,
+          costPrice: parseFloat(r.cost_price) || 0,
+          sellingPrice: parseFloat(r.selling_price) || 0,
+          defectReason: r.defect_reason,
+          status: r.status,
+          creditNoteRef: r.credit_note_ref || '',
+          dateStr: r.date_str,
+          timeStr: r.time_str,
+          returnedDateStr: r.returned_date_str || null
+        }));
+        localStorage.setItem(STORAGE_KEYS.DEFECTIVE_RETURNS, JSON.stringify(mapped));
+        if (window.app) {
+          window.app.defectiveReturns = mapped;
+          window.app.updateHeaderStats();
+        }
+      }
+    } catch (e) {
+      console.warn("Defective returns sync warning:", e);
+    }
   }
 
   static saveDefectiveReturns(records) {

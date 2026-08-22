@@ -70,8 +70,11 @@ class AutoPartsApp {
     // Bind Event Listeners
     this.setupEventListeners();
 
+    // Initialize Supabase Live Cloud Sync & Realtime Multi-Device WebSockets
+    this.storage.initCloudSync(this);
+
     if (window.lucide) lucide.createIcons();
-    console.log("🚀 AutoParts Pro Engine initialized with modular architecture.");
+    console.log("🚀 AutoParts Pro Engine initialized with Live Supabase Cloud Sync.");
   }
 
   saveProducts() {
