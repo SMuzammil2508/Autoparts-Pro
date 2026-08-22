@@ -335,7 +335,17 @@ class AutoPartsApp {
     }
 
     gridEl.innerHTML = subList.map(sub => {
-      const matchingCount = this.products.filter(p => {
+      const matchingProducts = this.products.filter(p => {
+        // 1. Filter by target Category
+        const partCat = (p.category || '').toLowerCase();
+        const catKey = targetCatId.toLowerCase();
+        const catObj = this.categories.find(c => c.id.toLowerCase() === catKey);
+        const catName = catObj ? catObj.name.toLowerCase() : catKey;
+        if (partCat !== catName && !partCat.includes(catName) && !catName.includes(partCat)) {
+          return false;
+        }
+
+        // 2. Filter by Vehicle Brand (if selected)
         if (this.selectedBrand !== 'all') {
           const pBrand = (p.vehicleBrand || '').toLowerCase();
           const bName = brandName.toLowerCase();
@@ -343,11 +353,20 @@ class AutoPartsApp {
             return false;
           }
         }
+
+        // 3. Match Sub-Category
         const matchesSubId = (p.subCategory || '').toLowerCase() === sub.id.toLowerCase();
         const targetText = `${p.name} ${p.partNumber} ${p.category} ${(p.compatibleModels || []).join(' ')}`.toLowerCase();
         const matchesKeywords = (sub.keywords || []).some(kw => targetText.includes(kw.toLowerCase()));
         return matchesSubId || matchesKeywords;
-      }).length;
+      });
+
+      const productCount = matchingProducts.length;
+      const totalUnits = matchingProducts.reduce((acc, p) => acc + this.inventoryManager.getTotalStock(p), 0);
+
+      const badgeHtml = productCount === 0
+        ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-950 text-slate-500 border border-slate-800">0 Available</span>`
+        : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800/40">${productCount} ${productCount === 1 ? 'Product' : 'Products'} (${totalUnits} pcs)</span>`;
 
       return `
         <button 
@@ -364,9 +383,7 @@ class AutoPartsApp {
             </div>
           </div>
           <div class="text-right shrink-0">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${matchingCount > 0 ? 'bg-emerald-950 text-emerald-300 border border-emerald-800/40' : 'bg-slate-950 text-slate-500'}">
-              ${matchingCount} in stock
-            </span>
+            ${badgeHtml}
           </div>
         </button>
       `;
