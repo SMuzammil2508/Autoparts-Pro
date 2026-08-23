@@ -360,6 +360,28 @@ export class StorageManager {
     }
   }
 
+  static async deleteProduct(id) {
+    // 1. Update local storage
+    const list = this.getProducts().filter(p => p.id !== id);
+    try {
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(list));
+    } catch (e) {
+      console.error("Local delete failed", e);
+    }
+
+    // 2. Delete from Supabase Cloud Database
+    const client = this.getClient();
+    if (client && navigator.onLine) {
+      try {
+        const { error } = await client.from('products').delete().eq('id', id);
+        if (error) console.warn("Supabase delete warning:", error);
+        else console.log(`🗑️ Successfully deleted product ${id} from Supabase Cloud!`);
+      } catch (err) {
+        console.warn("Cloud delete error:", err);
+      }
+    }
+  }
+
   // --- VEHICLE BRANDS ---
   static getVehicleBrands() {
     const data = localStorage.getItem(STORAGE_KEYS.VEHICLE_BRANDS);

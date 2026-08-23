@@ -979,6 +979,13 @@ class AutoPartsApp {
           return;
         }
 
+        const deleteBtn = e.target.closest('.btn-delete-part');
+        if (deleteBtn) {
+          const partId = deleteBtn.dataset.partId;
+          this.inventoryManager.confirmDeletePart(partId);
+          return;
+        }
+
         const transferUpstairsBtn = e.target.closest('.btn-transfer-upstairs');
         if (transferUpstairsBtn) {
           const partId = transferUpstairsBtn.dataset.partId;
@@ -1063,6 +1070,16 @@ class AutoPartsApp {
     const addPartForm = document.getElementById('add-part-form');
     if (addPartForm) {
       addPartForm.addEventListener('submit', (e) => this.inventoryManager.savePartFromForm(e));
+    }
+
+    const deleteCurrentPartBtn = document.getElementById('btn-delete-current-part');
+    if (deleteCurrentPartBtn) {
+      deleteCurrentPartBtn.addEventListener('click', (e) => {
+        const partId = e.currentTarget.dataset.partId || document.getElementById('form-part-id').value;
+        if (partId) {
+          this.inventoryManager.confirmDeletePart(partId);
+        }
+      });
     }
 
     const formVehBrandSelect = document.getElementById('form-vehicle-brand');

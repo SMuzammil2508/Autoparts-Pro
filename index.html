@@ -553,7 +553,7 @@
             </div>
             <div>
               <label class="block text-[11px] text-blue-400 font-bold mb-1">1st Floor</label>
-              <input type="number" id="form-stock-floor1" min="0" value="5" class="w-full p-2 rounded-lg bg-slate-950 border border-blue-500/40 text-blue-400 font-bold text-center" />
+              <input type="number" id="form-stock-floor1" min="0" value="0" class="w-full p-2 rounded-lg bg-slate-950 border border-blue-500/40 text-blue-400 font-bold text-center" />
             </div>
             <div>
               <label class="block text-[11px] text-purple-400 font-bold mb-1">2nd Floor</label>
@@ -562,9 +562,13 @@
           </div>
         </div>
 
-        <div class="pt-2">
-          <button type="submit" class="w-full btn-touch py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/30">
+        <div class="pt-2 flex items-center gap-2">
+          <button type="submit" class="flex-1 btn-touch py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/30">
             Save Product to Inventory
+          </button>
+          <button type="button" id="btn-delete-current-part" class="hidden btn-touch px-4 py-3.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-600/60 font-bold rounded-xl text-xs transition-all items-center gap-1.5 shrink-0" title="Permanently delete this auto part">
+            <i data-lucide="trash-2" class="w-4 h-4 text-rose-400"></i>
+            <span>Delete Part</span>
           </button>
         </div>
       </form>
@@ -1897,7 +1901,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- APPLICATION ENTRY SCRIPT (Cache-Busted) -->
-  <script type="module" src="./src/js/app.js?v=1.0.5"></script>
+  <script type="module" src="./src/js/app.js?v=1.0.6"></script>
 
 </body>
 </html>

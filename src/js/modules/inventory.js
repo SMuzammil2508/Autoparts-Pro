@@ -497,6 +497,15 @@ export class InventoryManager {
             >
               <i data-lucide="pencil" class="w-4 h-4"></i>
             </button>
+
+            <!-- Delete Part -->
+            <button 
+              class="btn-delete-part btn-touch p-2.5 rounded-xl bg-rose-950/50 hover:bg-rose-900/90 text-rose-400 hover:text-rose-200 border border-rose-800/40 text-xs font-bold transition-all"
+              data-part-id="${part.id}"
+              title="Permanently delete this part"
+            >
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
           </div>
 
         </div>
@@ -583,12 +592,18 @@ export class InventoryManager {
 
     const modalTitle = document.getElementById('add-part-modal-title');
     const form = document.getElementById('add-part-form');
+    const deleteBtn = document.getElementById('btn-delete-current-part');
     form.reset();
 
     if (editPartId) {
       const part = this.app.products.find(p => p.id === editPartId);
       if (part) {
         modalTitle.textContent = "Edit Auto Part & Stock";
+        if (deleteBtn) {
+          deleteBtn.classList.remove('hidden');
+          deleteBtn.classList.add('flex');
+          deleteBtn.dataset.partId = part.id;
+        }
         document.getElementById('form-part-id').value = part.id;
         document.getElementById('form-part-name').value = part.name;
         document.getElementById('form-part-number').value = part.partNumber;
@@ -599,19 +614,24 @@ export class InventoryManager {
         document.getElementById('form-compatible-models').value = (part.compatibleModels || []).join(', ');
         document.getElementById('form-cost-price').value = part.costPrice;
         document.getElementById('form-selling-price').value = part.sellingPrice;
-        document.getElementById('form-rack-location').value = part.rackLocation;
-        document.getElementById('form-stock-floor1').value = part.stockFloor1 || 0;
-        document.getElementById('form-stock-floor2').value = part.stockFloor2 || 0;
-        document.getElementById('form-stock-ground').value = part.stockGroundFloor || 0;
+        document.getElementById('form-rack-location').value = part.rackLocation || "Floor 1 - Rack A-01";
+        document.getElementById('form-stock-floor1').value = part.stockFloor1 !== undefined ? part.stockFloor1 : 0;
+        document.getElementById('form-stock-floor2').value = part.stockFloor2 !== undefined ? part.stockFloor2 : 0;
+        document.getElementById('form-stock-ground').value = part.stockGroundFloor !== undefined ? part.stockGroundFloor : 0;
       }
     } else {
       modalTitle.textContent = "Add New Auto Part";
+      if (deleteBtn) {
+        deleteBtn.classList.add('hidden');
+        deleteBtn.classList.remove('flex');
+        deleteBtn.dataset.partId = "";
+      }
       document.getElementById('form-part-id').value = "";
       const barcodeInput = document.getElementById('form-part-barcode');
       if (barcodeInput) barcodeInput.value = "890" + Math.floor(100000000 + Math.random() * 900000000);
       this.populateAddPartDropdowns();
       document.getElementById('form-rack-location').value = "Floor 1 - Rack A-01";
-      document.getElementById('form-stock-floor1').value = "5";
+      document.getElementById('form-stock-floor1').value = "0";
       document.getElementById('form-stock-floor2').value = "0";
       document.getElementById('form-stock-ground').value = "0";
     }
@@ -627,6 +647,42 @@ export class InventoryManager {
       modal.classList.add('hidden');
       modal.classList.remove('flex');
     }
+  }
+
+  confirmDeletePart(partId) {
+    if (!partId) return;
+    const part = this.app.products.find(p => p.id === partId);
+    if (!part) return;
+
+    const totalStock = this.getTotalStock(part);
+    let msg = `Permanently delete "${part.name}" (${part.partNumber})?`;
+    if (totalStock > 0) {
+      msg += `\n\n⚠️ Note: This item has ${totalStock} units currently in stock across floors.`;
+    }
+
+    if (confirm(msg)) {
+      this.deletePart(partId);
+    }
+  }
+
+  async deletePart(partId) {
+    const part = this.app.products.find(p => p.id === partId);
+    const partName = part ? part.name : 'Product';
+
+    // 1. Remove from in-memory products array
+    this.app.products = this.app.products.filter(p => p.id !== partId);
+
+    // 2. Remove locally and from Supabase cloud database
+    await this.app.storage.deleteProduct(partId);
+
+    // 3. Close edit modal if open
+    this.closeAddPartModal();
+
+    // 4. Update UI & sounds
+    this.renderProducts();
+    this.app.updateHeaderStats();
+    this.app.sound.playClick();
+    this.app.showToast(`🗑️ Deleted "${partName}" from catalog.`, "info");
   }
 
   populateAddPartDropdowns(selectedBrand = null, selectedCategory = null) {
