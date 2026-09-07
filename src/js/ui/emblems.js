@@ -57,15 +57,29 @@ export function getBrandBadgeHtml(brand, isSelected = false, size = 'sm') {
     `;
   }
 
-  // SUZUKI / MARUTI SUZUKI - Official Sharp Red Geometric 'S' Emblem SVG
+  // SUZUKI / MARUTI SUZUKI - Official Dual Boxed Wings & Geometric 'S' Corporate Logo SVG
   if (id === 'suzuki' || name.includes('suzuki') || name.includes('maruti')) {
+    const suzukiSizeClass = size === 'xs' ? 'w-7 h-4' : (size === 'lg' ? 'w-16 h-8' : 'w-9 h-5');
     return `
-      <span class="${sizeClass} rounded-md bg-white border border-slate-300 text-red-600 flex items-center justify-center p-0.5 shadow-sm" title="Maruti Suzuki">
-        <svg viewBox="0 0 100 100" class="w-full h-full" fill="#e11d48">
-          <!-- Official Suzuki 'S' Geometric Silhouette -->
-          <path d="M18 16 L82 16 L54 43 L80 43 L48 84 L18 84 L46 57 L20 57 Z" />
-          <polygon points="18,16 52,16 26,43 18,43" fill="#be123c" />
-          <polygon points="82,84 48,84 74,57 82,57" fill="#be123c" />
+      <span class="${suzukiSizeClass} rounded-md bg-white border border-slate-300 flex items-center justify-center p-0.5 shadow-sm" title="Maruti Suzuki">
+        <svg viewBox="0 0 310 100" class="w-full h-full">
+          <!-- Left Box: Official Blue Maruti Wings -->
+          <rect x="2" y="4" width="92" height="92" rx="3" fill="#ffffff" stroke="#94a3b8" stroke-width="2.5" />
+          <g transform="translate(11.5, 11.5) scale(0.67)">
+            <g transform="translate(-122.58, -126.42)">
+              <path d="M178.49447,206.78972v-14.88099c0,-11.49518 3.79101,-17.58412 8.42016,-22.21883l16.47955,-16.47401l26.7869,-26.79249v17.86165c0,10.57934 -3.78545,15.69139 -8.42016,20.31498l-12.41656,12.42213l-3.84652,3.85206c-1.39992,1.31138 -2.16825,3.16145 -2.1092,5.07874v2.97511l26.79244,-26.78137v17.8561c0,10.57934 -3.78545,15.69138 -8.42016,20.31498l-3.48575,3.49685l-3.8465,3.84652c-1.16561,1.15452 -2.10922,2.63651 -2.10922,5.07874v2.98064l17.86163,-17.8561v17.8561c0,13.85415 -8.03717,17.8561 -17.86163,17.8561h-33.82499zM174.26496,206.78972v-14.88099c0,-11.49518 -3.78546,-17.58412 -8.42017,-22.21883l-16.48511,-16.47401l-26.78135,-26.79249v17.86165c0,10.57934 3.79104,15.69139 8.42019,20.31498l12.41655,12.42213l3.84653,3.85206c1.16006,1.16006 2.10364,2.63651 2.10364,5.07874v2.97511l-26.78691,-26.78137v17.8561c0,10.57934 3.79104,15.69138 8.42019,20.31498l3.48573,3.49685l3.85208,3.84652c1.15452,1.15452 2.10364,2.63651 2.10364,5.07874v2.98064l-17.86164,-17.8561v17.8561c0,13.85415 8.03718,17.8561 17.86164,17.8561h33.82499z" fill="#1e3a8a" />
+            </g>
+          </g>
+          <!-- Right Box: Official Red Suzuki 'S' -->
+          <rect x="98" y="4" width="92" height="92" rx="3" fill="#ffffff" stroke="#94a3b8" stroke-width="2.5" />
+          <g transform="translate(100, 4) scale(0.88)">
+            <path d="M18 16 L82 16 L54 43 L80 43 L48 84 L18 84 L46 57 L20 57 Z" fill="#e11d48" />
+            <polygon points="18,16 52,16 26,43 18,43" fill="#be123c" />
+            <polygon points="82,84 48,84 74,57 82,57" fill="#be123c" />
+          </g>
+          <!-- Wordmark: MARUTI SUZUKI -->
+          <text x="202" y="46" font-family="-apple-system, BlinkMacSystemFont, Arial, Helvetica, sans-serif" font-size="44" font-weight="900" fill="#0f172a" letter-spacing="-1">MARUTI</text>
+          <text x="202" y="90" font-family="-apple-system, BlinkMacSystemFont, Arial, Helvetica, sans-serif" font-size="44" font-weight="900" fill="#0f172a" letter-spacing="-1">SUZUKI</text>
         </svg>
       </span>
     `;
