@@ -474,14 +474,20 @@
           <input type="text" id="form-part-name" required placeholder="e.g. Front Ceramic Brake Pads (Set of 4)" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-semibold focus:border-amber-500 focus:outline-none" />
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block font-bold text-slate-300 mb-1">Part Number / SKU *</label>
             <input type="text" id="form-part-number" required placeholder="e.g. BP-TY-402" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-mono focus:border-amber-500 focus:outline-none uppercase text-xs" />
           </div>
           <div>
             <label class="block font-bold text-slate-300 mb-1">Barcode / EAN</label>
-            <input type="text" id="form-part-barcode" placeholder="e.g. 890100104021" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-emerald-400 font-mono focus:border-emerald-500 focus:outline-none text-xs" />
+            <div class="space-y-1.5">
+              <input type="text" id="form-part-barcode" placeholder="Scan or generate barcode" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-emerald-400 font-mono focus:border-emerald-500 focus:outline-none text-xs" />
+              <button type="button" id="btn-generate-part-barcode" class="w-full btn-touch py-1.5 px-2.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 hover:border-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer" title="Generate guaranteed unique barcode that does not exist anywhere in database">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>Generate Barcode</span>
+              </button>
+            </div>
           </div>
           <div>
             <label class="block font-bold text-slate-300 mb-1">OEM Brand</label>

@@ -869,7 +869,7 @@ export class PriceRevisionManager {
           id: "part-" + Date.now() + "-" + Math.floor(Math.random() * 10000),
           name: autoDetails.cleanName || u.rawName || u.rawSku,
           partNumber: u.rawSku,
-          barcode: "890" + Math.floor(100000000 + Math.random() * 900000000),
+          barcode: this.app?.inventoryManager?.generateUniqueBarcode ? this.app.inventoryManager.generateUniqueBarcode() : ("890" + Math.floor(100000000 + Math.random() * 900000000)),
           brand: u.rawBrand || "OEM Quality",
           vehicleBrand: autoDetails.vehicleBrand,
           category: autoDetails.category,

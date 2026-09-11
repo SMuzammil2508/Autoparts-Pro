@@ -628,7 +628,7 @@ export class InventoryManager {
       }
       document.getElementById('form-part-id').value = "";
       const barcodeInput = document.getElementById('form-part-barcode');
-      if (barcodeInput) barcodeInput.value = "890" + Math.floor(100000000 + Math.random() * 900000000);
+      if (barcodeInput) barcodeInput.value = ""; // Clean initial value (no dummy auto-fill)
       this.populateAddPartDropdowns();
       document.getElementById('form-rack-location').value = "Floor 1 - Rack A-01";
       document.getElementById('form-stock-floor1').value = "0";
@@ -639,6 +639,42 @@ export class InventoryManager {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     if (window.lucide) lucide.createIcons();
+  }
+
+  // Generates a guaranteed-unique barcode that does not collide with any product or SKU in DB
+  generateUniqueBarcode() {
+    const existingSet = new Set();
+    (this.app.products || []).forEach(p => {
+      if (p.barcode) {
+        existingSet.add(String(p.barcode).trim().toUpperCase());
+        existingSet.add(String(p.barcode).toUpperCase().replace(/[\s\-_]/g, ''));
+      }
+      if (p.partNumber) {
+        existingSet.add(String(p.partNumber).trim().toUpperCase());
+        existingSet.add(String(p.partNumber).toUpperCase().replace(/[\s\-_]/g, ''));
+      }
+    });
+
+    let candidate = "";
+    let attempts = 0;
+    while (true) {
+      attempts++;
+      // Standard 12-digit Indian retail EAN/UPC style with '890' prefix + 9 random digits
+      const rand9 = Math.floor(100000000 + Math.random() * 900000000);
+      candidate = "890" + rand9;
+      const cleanCandidate = candidate.toUpperCase().replace(/[\s\-_]/g, '');
+
+      if (!existingSet.has(candidate.toUpperCase()) && !existingSet.has(cleanCandidate)) {
+        break;
+      }
+
+      if (attempts > 10000) {
+        candidate = "890" + String(Date.now()).slice(-6) + Math.floor(100 + Math.random() * 900);
+        break;
+      }
+    }
+
+    return candidate;
   }
 
   closeAddPartModal() {
@@ -709,7 +745,7 @@ export class InventoryManager {
     const name = document.getElementById('form-part-name').value.trim();
     const partNumber = document.getElementById('form-part-number').value.trim();
     const barcodeInput = document.getElementById('form-part-barcode');
-    const barcode = (barcodeInput && barcodeInput.value ? barcodeInput.value.trim() : '') || partNumber;
+    const rawBarcode = barcodeInput && barcodeInput.value ? barcodeInput.value.trim() : '';
     const brand = document.getElementById('form-part-brand').value.trim();
     const vehicleBrand = document.getElementById('form-vehicle-brand').value;
     const category = document.getElementById('form-category').value;
@@ -721,6 +757,73 @@ export class InventoryManager {
     const stockFloor2 = parseInt(document.getElementById('form-stock-floor2').value, 10) || 0;
     const stockGroundFloor = parseInt(document.getElementById('form-stock-ground').value, 10) || 0;
 
+    // --- 1. DUPLICATE SKU / PART NUMBER VALIDATION ---
+    const normPartNumber = partNumber.toUpperCase().replace(/[\s\-_]/g, '');
+    const dupBySku = this.app.products.find(p => 
+      p.id !== partId && 
+      (p.partNumber.trim().toUpperCase() === partNumber.toUpperCase() ||
+       p.partNumber.toUpperCase().replace(/[\s\-_]/g, '') === normPartNumber)
+    );
+
+    if (dupBySku) {
+      this.app.sound.playClick();
+      const skuInput = document.getElementById('form-part-number');
+      if (skuInput) {
+        skuInput.focus();
+        skuInput.classList.add('border-rose-500', 'bg-rose-950/40');
+        setTimeout(() => skuInput.classList.remove('border-rose-500', 'bg-rose-950/40'), 3000);
+      }
+      this.app.showToast(`⚠️ SKU "${partNumber}" already exists in inventory as "${dupBySku.name}"!`, "warning");
+      return;
+    }
+
+    // --- 2. DUPLICATE BARCODE VALIDATION (IF PROVIDED) ---
+    let finalBarcode = rawBarcode;
+    if (rawBarcode) {
+      const normBarcode = rawBarcode.toUpperCase().replace(/[\s\-_]/g, '');
+      const dupByBarcode = this.app.products.find(p => 
+        p.id !== partId && 
+        ((p.barcode && p.barcode.trim().toUpperCase() === rawBarcode.toUpperCase()) ||
+         (p.barcode && p.barcode.toUpperCase().replace(/[\s\-_]/g, '') === normBarcode))
+      );
+
+      if (dupByBarcode) {
+        this.app.sound.playClick();
+        if (barcodeInput) {
+          barcodeInput.focus();
+          barcodeInput.classList.add('border-rose-500', 'bg-rose-950/40');
+          setTimeout(() => barcodeInput.classList.remove('border-rose-500', 'bg-rose-950/40'), 3000);
+        }
+        this.app.showToast(`⚠️ Barcode "${rawBarcode}" already registered for "${dupByBarcode.name}" (${dupByBarcode.partNumber})!`, "warning");
+        return;
+      }
+    } else {
+      // Auto-generate guaranteed unique barcode if user left it blank
+      finalBarcode = this.generateUniqueBarcode();
+    }
+
+    // --- 3. DUPLICATE PART NAME & BRAND VALIDATION (PREVENT ACCIDENTAL DUPLICATES) ---
+    if (!partId) {
+      const dupByName = this.app.products.find(p =>
+        p.id !== partId &&
+        p.name.trim().toLowerCase() === name.toLowerCase() &&
+        (p.brand || '').trim().toLowerCase() === brand.toLowerCase() &&
+        (p.vehicleBrand || '').trim().toLowerCase() === vehicleBrand.toLowerCase()
+      );
+
+      if (dupByName) {
+        this.app.sound.playClick();
+        const nameInput = document.getElementById('form-part-name');
+        if (nameInput) {
+          nameInput.focus();
+          nameInput.classList.add('border-amber-500', 'bg-amber-950/40');
+          setTimeout(() => nameInput.classList.remove('border-amber-500', 'bg-amber-950/40'), 3000);
+        }
+        this.app.showToast(`⚠️ Similar item already exists: "${name}" (${dupByName.partNumber}). Please update stock or use a unique name.`, "warning");
+        return;
+      }
+    }
+
     const compatibleModels = modelsStr ? modelsStr.split(',').map(m => m.trim()).filter(Boolean) : [vehicleBrand];
 
     if (partId) {
@@ -729,7 +832,7 @@ export class InventoryManager {
       if (part) {
         part.name = name;
         part.partNumber = partNumber;
-        part.barcode = barcode;
+        part.barcode = finalBarcode;
         part.brand = brand;
         part.vehicleBrand = vehicleBrand;
         part.category = category;
@@ -748,7 +851,7 @@ export class InventoryManager {
         id: "part-" + Date.now(),
         name,
         partNumber,
-        barcode: barcode || ("890" + Math.floor(100000000 + Math.random() * 900000000)),
+        barcode: finalBarcode,
         brand,
         vehicleBrand,
         category,

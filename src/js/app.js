@@ -1072,6 +1072,23 @@ class AutoPartsApp {
       addPartForm.addEventListener('submit', (e) => this.inventoryManager.savePartFromForm(e));
     }
 
+    const btnGenerateBarcode = document.getElementById('btn-generate-part-barcode');
+    if (btnGenerateBarcode) {
+      btnGenerateBarcode.addEventListener('click', () => {
+        const uniqueBarcode = this.inventoryManager.generateUniqueBarcode();
+        const barcodeInput = document.getElementById('form-part-barcode');
+        if (barcodeInput) {
+          barcodeInput.value = uniqueBarcode;
+          barcodeInput.classList.add('border-emerald-400', 'bg-emerald-950/40');
+          setTimeout(() => {
+            barcodeInput.classList.remove('border-emerald-400', 'bg-emerald-950/40');
+          }, 800);
+        }
+        this.sound.playClick();
+        this.showToast(`✨ Generated unique barcode: ${uniqueBarcode}`, "success");
+      });
+    }
+
     const deleteCurrentPartBtn = document.getElementById('btn-delete-current-part');
     if (deleteCurrentPartBtn) {
       deleteCurrentPartBtn.addEventListener('click', (e) => {
