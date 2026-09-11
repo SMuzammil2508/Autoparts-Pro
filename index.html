@@ -456,53 +456,117 @@
   </div>
 
   <!-- MODAL 3: QUICK ADD / EDIT PART -->
-  <div id="add-part-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-3 md:p-6">
-    <div class="modal-enter w-full max-w-xl bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+  <div id="add-part-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-3 md:p-6">
+    <div class="modal-enter w-full max-w-2xl bg-[#0d131f] border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
       
-      <div class="bg-slate-900 px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-        <h2 id="add-part-modal-title" class="text-base md:text-lg font-black text-slate-100">Add New Auto Part</h2>
-        <button id="close-add-part-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
-          <i data-lucide="x" class="w-5 h-5"></i>
+      <!-- MODAL HEADER -->
+      <div class="bg-slate-900/90 px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold shadow-md shadow-amber-500/5">
+            <i data-lucide="package-plus" class="w-5 h-5 text-amber-400"></i>
+          </div>
+          <div>
+            <h2 id="add-part-modal-title" class="text-base md:text-lg font-black text-slate-100 tracking-tight">Add New Auto Part</h2>
+            <p class="text-[11px] text-slate-400 font-medium">Catalog identity, vehicle fitment & multi-floor stock allocation</p>
+          </div>
+        </div>
+        <button id="close-add-part-btn" class="w-8 h-8 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <form id="add-part-form" class="p-5 overflow-y-auto space-y-4 flex-1 text-xs md:text-sm">
+      <!-- MODAL FORM BODY -->
+      <form id="add-part-form" class="p-5 md:p-6 overflow-y-auto space-y-4 flex-1 text-xs md:text-sm custom-scrollbar">
         <input type="hidden" id="form-part-id" value="" />
 
+        <!-- 1. PART NAME -->
         <div>
-          <label class="block font-bold text-slate-300 mb-1">Part Name *</label>
-          <input type="text" id="form-part-name" required placeholder="e.g. Front Ceramic Brake Pads (Set of 4)" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-semibold focus:border-amber-500 focus:outline-none" />
+          <label class="block font-bold text-slate-200 mb-1.5 flex items-center gap-1.5">
+            <span>Part Name</span>
+            <span class="text-amber-400 text-xs">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="form-part-name" 
+            required 
+            placeholder="e.g. Front Ceramic Brake Pads (Set of 4)" 
+            class="w-full px-3.5 py-2.5 md:py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-100 font-semibold focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none transition-all placeholder:text-slate-500" 
+          />
         </div>
 
+        <!-- 2. SKU, BARCODE & OEM BRAND (PERFECT EQUAL-HEIGHT 3-COL GRID) -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- SKU / PART NUMBER -->
           <div>
-            <label class="block font-bold text-slate-300 mb-1">Part Number / SKU *</label>
-            <input type="text" id="form-part-number" required placeholder="e.g. BP-TY-402" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-mono focus:border-amber-500 focus:outline-none uppercase text-xs" />
+            <label class="block font-bold text-slate-200 mb-1.5 flex items-center gap-1">
+              <span>Part Number / SKU</span>
+              <span class="text-amber-400 text-xs">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="form-part-number" 
+              required 
+              placeholder="e.g. BP-TY-402" 
+              class="w-full px-3 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-100 font-mono font-bold focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none uppercase text-xs transition-all placeholder:text-slate-500" 
+            />
           </div>
+
+          <!-- BARCODE WITH DOCKED INLINE GENERATOR BUTTON -->
           <div>
-            <label class="block font-bold text-slate-300 mb-1">Barcode / EAN</label>
-            <div class="space-y-1.5">
-              <input type="text" id="form-part-barcode" placeholder="Scan or generate barcode" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-emerald-400 font-mono focus:border-emerald-500 focus:outline-none text-xs" />
-              <button type="button" id="btn-generate-part-barcode" class="w-full btn-touch py-1.5 px-2.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 hover:border-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer" title="Generate guaranteed unique barcode that does not exist anywhere in database">
-                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-400"></i>
-                <span>Generate Barcode</span>
+            <label class="block font-bold text-slate-200 mb-1.5 flex items-center justify-between">
+              <span>Barcode / EAN</span>
+              <span class="text-[10px] text-emerald-400 font-semibold">1D / Vector</span>
+            </label>
+            <div class="relative flex items-center">
+              <input 
+                type="text" 
+                id="form-part-barcode" 
+                placeholder="Scan or Generate" 
+                class="w-full pl-3 pr-20 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-emerald-400 font-mono font-bold focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none text-xs transition-all placeholder:text-slate-500" 
+              />
+              <button 
+                type="button" 
+                id="btn-generate-part-barcode" 
+                class="absolute right-1 px-2.5 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 hover:border-emerald-400 text-[11px] font-black flex items-center gap-1 transition-all shadow-sm cursor-pointer" 
+                title="Generate guaranteed unique barcode that does not exist anywhere in database"
+              >
+                <i data-lucide="sparkles" class="w-3 h-3 text-emerald-400"></i>
+                <span>Gen</span>
               </button>
             </div>
           </div>
+
+          <!-- OEM BRAND -->
           <div>
-            <label class="block font-bold text-slate-300 mb-1">OEM Brand</label>
-            <input type="text" id="form-part-brand" placeholder="e.g. Bosch, Denso" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:border-amber-500 focus:outline-none text-xs" />
+            <label class="block font-bold text-slate-200 mb-1.5">
+              <span>OEM Brand</span>
+            </label>
+            <input 
+              type="text" 
+              id="form-part-brand" 
+              placeholder="e.g. Bosch, Denso, Monroe" 
+              class="w-full px-3 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-100 font-semibold focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none text-xs transition-all placeholder:text-slate-500" 
+            />
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <!-- 3. VEHICLE BRAND & CATEGORY (2-COL GRID) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-300 mb-1">Vehicle Brand</label>
-            <select id="form-vehicle-brand" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:border-amber-500 focus:outline-none">
+            <label class="block font-bold text-slate-200 mb-1.5 flex items-center gap-1.5">
+              <i data-lucide="car" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Vehicle Brand</span>
+            </label>
+            <select 
+              id="form-vehicle-brand" 
+              class="w-full px-3 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-100 font-semibold focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none text-xs md:text-sm cursor-pointer"
+            >
               <option value="Toyota">Toyota</option>
               <option value="Honda">Honda</option>
               <option value="Hyundai">Hyundai</option>
               <option value="Suzuki / Maruti">Suzuki / Maruti</option>
+              <option value="Mahindra">Mahindra</option>
+              <option value="Tata">Tata</option>
               <option value="Ford">Ford</option>
               <option value="Nissan">Nissan</option>
               <option value="Volkswagen">Volkswagen</option>
@@ -510,8 +574,14 @@
             </select>
           </div>
           <div>
-            <label class="block font-bold text-slate-300 mb-1">Part Category</label>
-            <select id="form-category" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:border-amber-500 focus:outline-none">
+            <label class="block font-bold text-slate-200 mb-1.5 flex items-center gap-1.5">
+              <i data-lucide="layers" class="w-3.5 h-3.5 text-blue-400"></i>
+              <span>Part Category</span>
+            </label>
+            <select 
+              id="form-category" 
+              class="w-full px-3 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-100 font-semibold focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none text-xs md:text-sm cursor-pointer"
+            >
               <option value="Brakes">Brakes</option>
               <option value="Suspension">Suspension</option>
               <option value="Filters">Filters</option>
@@ -525,63 +595,133 @@
           </div>
         </div>
 
+        <!-- 4. COMPATIBLE MODELS -->
         <div>
-          <label class="block font-bold text-slate-300 mb-1">Compatible Car Models (comma separated)</label>
-          <input type="text" id="form-compatible-models" placeholder="e.g. Corolla 2014-2022, Prius 2016-2022" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:border-amber-500 focus:outline-none" />
+          <label class="block font-bold text-slate-200 mb-1.5 flex items-center gap-1.5">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Compatible Car Models (comma separated)</span>
+          </label>
+          <input 
+            type="text" 
+            id="form-compatible-models" 
+            placeholder="e.g. Corolla 2014-2022, Prius 2016-2022, Yaris" 
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-100 font-medium focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none text-xs md:text-sm transition-all placeholder:text-slate-500" 
+          />
         </div>
 
+        <!-- 5. PRICING & LOW STOCK THRESHOLD (CLEAN 3-COL ROW) -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label class="block font-bold text-slate-300 mb-1">Cost Price (₹)</label>
-            <input type="number" step="0.01" id="form-cost-price" placeholder="1100.00" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-mono focus:border-amber-500 focus:outline-none text-xs md:text-sm" />
+            <label class="block font-bold text-slate-200 mb-1.5">Cost Price (₹)</label>
+            <input 
+              type="number" 
+              step="0.01" 
+              id="form-cost-price" 
+              placeholder="1100.00" 
+              class="w-full px-3 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-100 font-mono font-bold focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none text-xs md:text-sm placeholder:text-slate-500" 
+            />
           </div>
           <div>
-            <label class="block font-bold text-slate-300 mb-1">Selling Price (₹) *</label>
-            <input type="number" step="0.01" id="form-selling-price" required placeholder="1950.00" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-amber-400 font-black font-mono text-xs md:text-sm focus:border-amber-500 focus:outline-none" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-300 mb-1 flex items-center justify-between" title="Trigger 'Low Stock' warning when total quantity drops to or below this amount">
-              <span>Low Stock Alert (Qty)</span>
-              <span class="text-[10px] text-amber-400 font-normal">Threshold</span>
+            <label class="block font-bold text-slate-200 mb-1.5 flex items-center gap-1">
+              <span>Selling Price (₹)</span>
+              <span class="text-amber-400 text-xs">*</span>
             </label>
-            <input type="number" id="form-min-stock-alert" min="0" value="1" placeholder="e.g. 1 for costly parts" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-amber-300 font-bold focus:border-amber-500 focus:outline-none text-xs md:text-sm" />
+            <input 
+              type="number" 
+              step="0.01" 
+              id="form-selling-price" 
+              required 
+              placeholder="1950.00" 
+              class="w-full px-3 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-amber-400 font-mono font-black text-xs md:text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none placeholder:text-slate-500" 
+            />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-200 mb-1.5 flex items-center justify-between" title="Trigger 'Low Stock' alert badge when total quantity across floors drops to or below this number">
+              <span>Low Stock Alert (Qty)</span>
+              <span class="text-[10px] text-amber-400 font-semibold">Min Threshold</span>
+            </label>
+            <input 
+              type="number" 
+              id="form-min-stock-alert" 
+              min="0" 
+              value="1" 
+              placeholder="1" 
+              class="w-full px-3 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-amber-300 font-mono font-bold focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none text-xs md:text-sm placeholder:text-slate-500" 
+            />
           </div>
         </div>
 
-        <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
-          <div class="font-bold text-slate-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
-            <i data-lucide="map-pin" class="w-4 h-4 text-blue-400"></i>
-            <span>Warehouse Floor & Rack Allocation</span>
+        <!-- 6. WAREHOUSE & MULTI-FLOOR STOCK ALLOCATION -->
+        <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3.5 shadow-inner">
+          <div class="flex items-center justify-between">
+            <div class="font-extrabold text-slate-200 text-xs uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="map-pin" class="w-4 h-4 text-blue-400"></i>
+              <span>Warehouse Floor & Rack Allocation</span>
+            </div>
+            <span class="text-[11px] text-slate-400 font-medium">Multi-Floor Breakdown</span>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1">Assigned Rack Location</label>
-            <input type="text" id="form-rack-location" placeholder="Floor 1 - Rack A-04" class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 font-semibold focus:border-amber-500 focus:outline-none" />
+            <input 
+              type="text" 
+              id="form-rack-location" 
+              placeholder="Floor 1 - Rack A-04" 
+              class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 font-semibold focus:border-amber-500 focus:outline-none text-xs md:text-sm" 
+            />
           </div>
 
-          <div class="grid grid-cols-3 gap-2 text-center">
-            <div>
-              <label class="block text-[11px] text-amber-400 font-bold mb-1">Ground Floor</label>
-              <input type="number" id="form-stock-ground" min="0" value="0" class="w-full p-2 rounded-lg bg-slate-950 border border-amber-500/40 text-amber-400 font-bold text-center" />
+          <div class="grid grid-cols-3 gap-2.5 text-center">
+            <div class="p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/30">
+              <label class="block text-[11px] text-amber-400 font-extrabold mb-1">Ground Floor</label>
+              <input 
+                type="number" 
+                id="form-stock-ground" 
+                min="0" 
+                value="0" 
+                class="w-full py-1.5 rounded-lg bg-slate-950 border border-amber-500/40 text-amber-400 font-mono font-black text-center text-sm focus:border-amber-400 focus:outline-none" 
+              />
             </div>
-            <div>
-              <label class="block text-[11px] text-blue-400 font-bold mb-1">1st Floor</label>
-              <input type="number" id="form-stock-floor1" min="0" value="0" class="w-full p-2 rounded-lg bg-slate-950 border border-blue-500/40 text-blue-400 font-bold text-center" />
+            <div class="p-2.5 rounded-xl bg-blue-500/5 border border-blue-500/30">
+              <label class="block text-[11px] text-blue-400 font-extrabold mb-1">1st Floor</label>
+              <input 
+                type="number" 
+                id="form-stock-floor1" 
+                min="0" 
+                value="0" 
+                class="w-full py-1.5 rounded-lg bg-slate-950 border border-blue-500/40 text-blue-400 font-mono font-black text-center text-sm focus:border-blue-400 focus:outline-none" 
+              />
             </div>
-            <div>
-              <label class="block text-[11px] text-purple-400 font-bold mb-1">2nd Floor</label>
-              <input type="number" id="form-stock-floor2" min="0" value="0" class="w-full p-2 rounded-lg bg-slate-950 border border-purple-500/40 text-purple-400 font-bold text-center" />
+            <div class="p-2.5 rounded-xl bg-purple-500/5 border border-purple-500/30">
+              <label class="block text-[11px] text-purple-400 font-extrabold mb-1">2nd Floor</label>
+              <input 
+                type="number" 
+                id="form-stock-floor2" 
+                min="0" 
+                value="0" 
+                class="w-full py-1.5 rounded-lg bg-slate-950 border border-purple-500/40 text-purple-400 font-mono font-black text-center text-sm focus:border-purple-400 focus:outline-none" 
+              />
             </div>
           </div>
         </div>
 
-        <div class="pt-2 flex items-center gap-2">
-          <button type="submit" class="flex-1 btn-touch py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/30">
-            Save Product to Inventory
+        <!-- 7. ACTION BUTTONS -->
+        <div class="pt-2 flex items-center gap-2.5">
+          <button 
+            type="submit" 
+            class="flex-1 btn-touch py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
+            <span>Save Product to Inventory</span>
           </button>
-          <button type="button" id="btn-delete-current-part" class="hidden btn-touch px-4 py-3.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-600/60 font-bold rounded-xl text-xs transition-all items-center gap-1.5 shrink-0" title="Permanently delete this auto part">
+          <button 
+            type="button" 
+            id="btn-delete-current-part" 
+            class="hidden btn-touch px-4 py-3 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-600/60 font-bold rounded-xl text-xs transition-all items-center gap-1.5 shrink-0 cursor-pointer" 
+            title="Permanently delete this auto part"
+          >
             <i data-lucide="trash-2" class="w-4 h-4 text-rose-400"></i>
-            <span>Delete Part</span>
+            <span>Delete</span>
           </button>
         </div>
       </form>
