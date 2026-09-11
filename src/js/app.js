@@ -94,7 +94,8 @@ class AutoPartsApp {
     const inStockCount = this.products.filter(p => this.inventoryManager.getTotalStock(p) > 0).length;
     const lowStockCount = this.products.filter(p => {
       const s = this.inventoryManager.getTotalStock(p);
-      return s > 0 && s <= (p.minStockAlert || 2);
+      const minAlert = (p.minStockAlert !== undefined && p.minStockAlert !== null) ? Number(p.minStockAlert) : 1;
+      return s > 0 && s <= minAlert;
     }).length;
     const outOfStockCount = this.products.filter(p => this.inventoryManager.getTotalStock(p) === 0).length;
 

@@ -132,7 +132,8 @@ export class InventoryManager {
       } else if (this.app.selectedStatusTab === "in-stock") {
         if (totalStock === 0) return false;
       } else if (this.app.selectedStatusTab === "low-stock") {
-        if (totalStock > (p.minStockAlert || 2) || totalStock === 0) return false;
+        const minAlert = (p.minStockAlert !== undefined && p.minStockAlert !== null) ? Number(p.minStockAlert) : 1;
+        if (totalStock > minAlert || totalStock === 0) return false;
       } else if (this.app.selectedStatusTab === "out-of-stock") {
         if (totalStock > 0) return false;
       }
@@ -299,8 +300,9 @@ export class InventoryManager {
       const groundStash = Number(part.stockGroundFloor) || 0;
       const floor1 = Number(part.stockFloor1) || 0;
       const floor2 = Number(part.stockFloor2) || 0;
+      const minAlert = (part.minStockAlert !== undefined && part.minStockAlert !== null) ? Number(part.minStockAlert) : 1;
       const isOutOfStock = totalStock === 0;
-      const isLowStock = totalStock > 0 && totalStock <= (part.minStockAlert || 2);
+      const isLowStock = totalStock > 0 && totalStock <= minAlert;
       const hasGroundStash = groundStash > 0;
 
       const partDefectiveList = (this.app.defectiveReturns || []).filter(d => d.partId === part.id && d.status === 'pending_wholesaler');
@@ -614,6 +616,8 @@ export class InventoryManager {
         document.getElementById('form-compatible-models').value = (part.compatibleModels || []).join(', ');
         document.getElementById('form-cost-price').value = part.costPrice;
         document.getElementById('form-selling-price').value = part.sellingPrice;
+        const minAlertEl = document.getElementById('form-min-stock-alert');
+        if (minAlertEl) minAlertEl.value = (part.minStockAlert !== undefined && part.minStockAlert !== null) ? part.minStockAlert : 1;
         document.getElementById('form-rack-location').value = part.rackLocation || "Floor 1 - Rack A-01";
         document.getElementById('form-stock-floor1').value = part.stockFloor1 !== undefined ? part.stockFloor1 : 0;
         document.getElementById('form-stock-floor2').value = part.stockFloor2 !== undefined ? part.stockFloor2 : 0;
@@ -629,6 +633,8 @@ export class InventoryManager {
       document.getElementById('form-part-id').value = "";
       const barcodeInput = document.getElementById('form-part-barcode');
       if (barcodeInput) barcodeInput.value = ""; // Clean initial value (no dummy auto-fill)
+      const minAlertEl = document.getElementById('form-min-stock-alert');
+      if (minAlertEl) minAlertEl.value = "1"; // Default threshold: 1 (safe for costly & standard parts)
       this.populateAddPartDropdowns();
       document.getElementById('form-rack-location').value = "Floor 1 - Rack A-01";
       document.getElementById('form-stock-floor1').value = "0";
@@ -752,6 +758,8 @@ export class InventoryManager {
     const modelsStr = document.getElementById('form-compatible-models').value.trim();
     const costPrice = parseFloat(document.getElementById('form-cost-price').value) || 0;
     const sellingPrice = parseFloat(document.getElementById('form-selling-price').value) || 0;
+    const minAlertInput = document.getElementById('form-min-stock-alert');
+    const minStockAlert = (minAlertInput && minAlertInput.value !== "") ? Math.max(0, parseInt(minAlertInput.value, 10)) : 1;
     const rackLocation = document.getElementById('form-rack-location').value.trim() || "Floor 1 - Rack A-01";
     const stockFloor1 = parseInt(document.getElementById('form-stock-floor1').value, 10) || 0;
     const stockFloor2 = parseInt(document.getElementById('form-stock-floor2').value, 10) || 0;
@@ -839,6 +847,7 @@ export class InventoryManager {
         part.compatibleModels = compatibleModels;
         part.costPrice = costPrice;
         part.sellingPrice = sellingPrice;
+        part.minStockAlert = minStockAlert;
         part.rackLocation = rackLocation;
         part.stockFloor1 = stockFloor1;
         part.stockFloor2 = stockFloor2;
@@ -862,7 +871,7 @@ export class InventoryManager {
         stockFloor1,
         stockFloor2,
         stockGroundFloor,
-        minStockAlert: 2,
+        minStockAlert: minStockAlert,
         unit: 'Piece'
       };
       this.app.products.unshift(newPart);

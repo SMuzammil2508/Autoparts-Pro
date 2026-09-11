@@ -880,7 +880,7 @@ export class PriceRevisionManager {
           stockFloor1: 5,
           stockFloor2: 0,
           stockGroundFloor: 0,
-          minStockAlert: 2,
+          minStockAlert: (sellingPrice >= 3000) ? 1 : 2,
           unit: 'Piece'
         };
         this.app.products.unshift(newPart);

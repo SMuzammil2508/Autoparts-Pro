@@ -75,7 +75,7 @@ export const INITIAL_PARTS_DATA = [
     stockFloor1: 0,
     stockFloor2: 4,
     rackLocation: "Floor 2 - Rack S-05",
-    minStockAlert: 2,
+    minStockAlert: 1,
     unit: "Piece",
     imageUrl: "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=300&q=80"
   },

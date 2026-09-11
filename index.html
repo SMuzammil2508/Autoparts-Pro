@@ -530,14 +530,21 @@
           <input type="text" id="form-compatible-models" placeholder="e.g. Corolla 2014-2022, Prius 2016-2022" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:border-amber-500 focus:outline-none" />
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label class="block font-bold text-slate-300 mb-1">Cost Price (Rs)</label>
-            <input type="number" step="0.01" id="form-cost-price" placeholder="1100.00" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-mono focus:border-amber-500 focus:outline-none" />
+            <label class="block font-bold text-slate-300 mb-1">Cost Price (₹)</label>
+            <input type="number" step="0.01" id="form-cost-price" placeholder="1100.00" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 font-mono focus:border-amber-500 focus:outline-none text-xs md:text-sm" />
           </div>
           <div>
-            <label class="block font-bold text-slate-300 mb-1">Selling Price (Rs) *</label>
-            <input type="number" step="0.01" id="form-selling-price" required placeholder="1950.00" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-amber-400 font-black font-mono text-base focus:border-amber-500 focus:outline-none" />
+            <label class="block font-bold text-slate-300 mb-1">Selling Price (₹) *</label>
+            <input type="number" step="0.01" id="form-selling-price" required placeholder="1950.00" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-amber-400 font-black font-mono text-xs md:text-sm focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-300 mb-1 flex items-center justify-between" title="Trigger 'Low Stock' warning when total quantity drops to or below this amount">
+              <span>Low Stock Alert (Qty)</span>
+              <span class="text-[10px] text-amber-400 font-normal">Threshold</span>
+            </label>
+            <input type="number" id="form-min-stock-alert" min="0" value="1" placeholder="e.g. 1 for costly parts" class="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-amber-300 font-bold focus:border-amber-500 focus:outline-none text-xs md:text-sm" />
           </div>
         </div>
 
