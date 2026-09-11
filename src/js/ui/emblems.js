@@ -85,52 +85,24 @@ export function getBrandBadgeHtml(brand, isSelected = false, size = 'sm') {
     `;
   }
 
-  // MAHINDRA - Official Red Oval Emblem with 3 Converging Rays & Stylized Wordmark SVG
+  // MAHINDRA - Official Red Oval Emblem with 3 Converging Rays SVG (Emblem Only)
   if (id === 'mahindra' || name.includes('mahindra')) {
-    const mahindraSizeClass = size === 'xs' ? 'w-8 h-4' : (size === 'lg' ? 'w-16 h-8' : 'w-10 h-5');
+    const mahindraSizeClass = size === 'xs' ? 'w-5 h-4' : (size === 'lg' ? 'w-10 h-7' : 'w-7 h-5');
     return `
       <span class="${mahindraSizeClass} rounded-md bg-[#0a0e17] border border-red-600/40 flex items-center justify-center p-0.5 shadow-sm" title="Mahindra">
-        <svg viewBox="0 0 240 120" class="w-full h-full">
-          <!-- TOP RED EMBLEM: Red Oval with 3 Converging Rays -->
+        <svg viewBox="0 0 100 56" class="w-full h-full">
           <g fill="#ed1c24">
-            <!-- Outer Oval Frame -->
-            <path d="M 120 5 C 178 5, 222 17, 222 33 C 222 49, 178 61, 120 61 C 62 61, 18 49, 18 33 C 18 17, 62 5, 120 5 Z M 120 12 C 68 12, 28 22, 28 33 C 28 44, 68 54, 120 54 C 172 54, 212 44, 212 33 C 212 22, 172 12, 120 12 Z" fill-rule="evenodd" />
+            <!-- Top & Left Loop + Outer Rim -->
+            <path d="M 50 3 C 76 3, 97 14, 97 28 C 97 42, 76 53, 50 53 C 24 53, 3 42, 3 28 C 3 14, 24 3, 50 3 Z M 50 8.5 C 26 8.5, 9 17, 9 28 C 9 35, 14 39.5, 22 39 C 32 38, 50 24, 68 11 C 62 9.5, 56 8.5, 50 8.5 Z" fill-rule="evenodd" />
 
-            <!-- Left Converging Ray -->
-            <path d="M 42 40 C 53 36, 96 23, 154 13 C 147 14, 98 30, 68 47 C 56 47, 47 44, 42 40 Z" />
+            <!-- Left Ray (curves out of bottom-left) -->
+            <path d="M 9.2 29 C 9.2 40, 20 48, 33 50.5 L 69 11.5 C 67.5 11, 46 22.5, 23 33.5 C 14.5 37.5, 9.8 34.5, 9.2 29 Z" />
 
-            <!-- Middle Converging Ray -->
-            <path d="M 88 54 C 98 47, 128 30, 157 13 C 150 16, 118 38, 107 56 C 99 56, 92 55, 88 54 Z" />
+            <!-- Middle Ray -->
+            <path d="M 26.5 50.8 L 36.5 52.8 L 73 12.5 L 69.8 11.3 Z" />
 
-            <!-- Right Converging Ray & Wing Area -->
-            <path d="M 127 57 C 140 47, 158 28, 164 14 C 186 22, 202 35, 200 44 C 193 53, 158 57, 127 57 Z" />
-          </g>
-
-          <!-- BOTTOM WORDMARK: Mahindra -->
-          <g fill="#ed1c24" transform="translate(6, 70)">
-            <!-- M -->
-            <path d="M 2 38 L 2 6 C 2 2, 6 0, 10 0 L 32 0 C 36 0, 38 2, 38 6 L 38 38 L 30.5 38 L 30.5 7.5 L 23.5 7.5 L 23.5 27 L 16.5 27 L 16.5 7.5 L 9.5 7.5 L 9.5 38 Z" />
-            
-            <!-- a -->
-            <path d="M 44 38 L 44 14 C 44 11, 47 9, 51 9 L 60 9 C 64 9, 66 11, 66 14 L 66 38 L 58.5 38 L 58.5 31.5 C 57.5 35.5, 54 38, 49 38 L 44 38 Z M 51.5 30.5 C 56 30.5, 58.5 28, 58.5 24 L 58.5 16 C 58.5 14.5, 57 14, 54.5 14 L 51.5 14 C 49.5 14, 48.5 15, 48.5 17 L 48.5 27.5 C 48.5 29.5, 49.5 30.5, 51.5 30.5 Z" />
-
-            <!-- h -->
-            <path d="M 72 38 L 72 0 L 79.5 0 L 79.5 14 C 81.5 10.5, 84.5 9, 89.5 9 L 91.5 9 C 95.5 9, 97.5 11, 97.5 15 L 97.5 38 L 90 38 L 90 17.5 C 90 15, 88.5 14, 85.5 14 C 82.5 14, 79.5 16, 79.5 19.5 L 79.5 38 Z" />
-
-            <!-- i -->
-            <path d="M 103 38 L 103 9 L 110.5 9 L 110.5 38 Z M 103 5.5 L 103 0 L 110.5 0 L 110.5 5.5 Z" />
-
-            <!-- n -->
-            <path d="M 116 38 L 116 9 L 123.5 9 L 123.5 14 C 125.5 10.5, 128.5 9, 133.5 9 L 135.5 9 C 139.5 9, 141.5 11, 141.5 15 L 141.5 38 L 134 38 L 134 17.5 C 134 15, 132.5 14, 129.5 14 C 126.5 14, 123.5 16, 123.5 19.5 L 123.5 38 Z" />
-
-            <!-- d -->
-            <path d="M 147 38 L 147 14 C 147 11, 150 9, 154 9 L 160 9 L 160 0 L 167.5 0 L 167.5 38 L 160 38 L 160 32 C 158.5 35.5, 155 38, 150.5 38 Z M 154.5 30.5 C 157.5 30.5, 160 28.5, 160 25.5 L 160 16.5 C 160 14.5, 157.5 14, 154.5 14 C 152 14, 150.5 15, 150.5 17.5 L 150.5 27 C 150.5 29.5, 152 30.5, 154.5 30.5 Z" />
-
-            <!-- r -->
-            <path d="M 173 38 L 173 9 L 180.5 9 L 180.5 16.5 C 182.5 11.5, 186.5 9, 191.5 9 L 193.5 9 L 193.5 16.5 L 189 16.5 C 184.5 16.5, 180.5 18.5, 180.5 23.5 L 180.5 38 Z" />
-
-            <!-- a -->
-            <path d="M 198 38 L 198 14 C 198 11, 201 9, 205 9 L 214 9 C 218 9, 220 11, 220 14 L 220 38 L 212.5 38 L 212.5 31.5 C 211.5 35.5, 208 38, 203 38 L 198 38 Z M 205.5 30.5 C 210 30.5, 212.5 28, 212.5 24 L 212.5 16 C 212.5 14.5, 211 14, 208.5 14 L 205.5 14 C 203.5 14, 202.5 15, 202.5 17 L 202.5 27.5 C 202.5 29.5, 203.5 30.5, 205.5 30.5 Z" />
+            <!-- Right Ray & Lower Right Rim -->
+            <path d="M 43.5 53.6 C 52 54.8, 76 52.5, 92 38 C 96.5 33.5, 95.5 24, 88 18 C 82.5 13.5, 77 12.8, 74.5 12.8 L 43.5 53.6 Z M 56 46 L 75.8 15.8 C 80.5 18.8, 87.5 23.5, 87.5 29.5 C 87.5 36.5, 75 43.5, 56 46 Z" fill-rule="evenodd" />
           </g>
         </svg>
       </span>
