@@ -97,6 +97,17 @@
           <span id="header-today-revenue" class="text-emerald-400 font-mono text-xs hidden md:inline">₹ 0</span>
         </button>
 
+        <!-- BATCH PRINT STICKERS BUTTON -->
+        <button 
+          id="open-batch-print-btn" 
+          class="btn-touch flex items-center gap-1.5 px-3 md:px-3.5 py-2 rounded-xl bg-blue-950/80 hover:bg-blue-900 text-blue-200 border border-blue-500/50 font-bold text-xs md:text-sm transition-all shadow-md shadow-blue-950/40"
+          title="Print thermal box stickers for multiple parts in 1 single continuous print job"
+        >
+          <i data-lucide="layers" class="w-4 h-4 text-blue-400"></i>
+          <span class="hidden sm:inline">Batch Print</span>
+          <span id="header-batch-print-count" class="bg-blue-600 text-white px-2 py-0.5 rounded-full text-xs font-black">0</span>
+        </button>
+
         <!-- BULK PRICE REVISION & WHOLESALER CSV SYNC BUTTON -->
         <button 
           id="open-price-revision-btn" 
@@ -192,6 +203,16 @@
           >
             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-400"></i>
             <span>Clear All</span>
+          </button>
+
+          <!-- Select All Visible / Filtered Parts for Batch Printing Button -->
+          <button 
+            id="btn-select-all-filtered" 
+            class="btn-touch px-2.5 py-1.5 rounded-xl bg-blue-950/80 hover:bg-blue-900 text-blue-300 border border-blue-500/50 flex items-center gap-1.5 text-xs font-bold transition-all shadow-md shadow-blue-950/40"
+            title="Select all currently visible/filtered parts for Batch Printing"
+          >
+            <i data-lucide="check-square" class="w-3.5 h-3.5 text-blue-400"></i>
+            <span class="hidden sm:inline">Select Visible</span>
           </button>
 
           <!-- Voice Search (Speech-to-Text) Button -->
@@ -313,6 +334,57 @@
     <section id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-12">
       <!-- Injected via JavaScript -->
     </section>
+
+    <!-- FLOATING BATCH ACTIONS DOCK -->
+    <div id="batch-action-bar" class="batch-dock-container hidden w-full max-w-3xl px-3 no-print">
+      <div class="batch-dock-animate p-3 md:p-3.5 rounded-2xl bg-slate-900/95 border-2 border-blue-500/70 shadow-2xl shadow-blue-950/80 backdrop-blur-xl flex flex-wrap items-center justify-between gap-2.5">
+        
+        <!-- Left: Selection Stats -->
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center shadow-md shadow-blue-600/30">
+            <i data-lucide="layers" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span id="batch-dock-selected-count" class="font-extrabold text-slate-100 text-sm md:text-base">0 Parts Selected</span>
+              <span id="batch-dock-stickers-count" class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-bold text-xs border border-blue-500/30">0 Stickers</span>
+            </div>
+            <div class="text-[11px] text-slate-400 font-medium">Ready for continuous thermal batch printing</div>
+          </div>
+        </div>
+
+        <!-- Center / Right Actions -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Quick Qty Presets -->
+          <div class="hidden sm:flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
+            <span class="text-[10px] text-slate-400 font-bold px-1.5 uppercase">Set All:</span>
+            <button class="btn-dock-quick-qty px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-200 font-bold" data-qty="1">1x</button>
+            <button class="btn-dock-quick-qty px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-200 font-bold" data-qty="2">2x</button>
+            <button class="btn-dock-quick-qty px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-200 font-bold" data-qty="5">5x</button>
+          </div>
+
+          <!-- Clear Queue -->
+          <button 
+            id="btn-dock-clear-batch" 
+            class="btn-touch px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-slate-100 rounded-xl text-xs font-bold border border-slate-700 flex items-center gap-1"
+            title="Deselect all and clear batch queue"
+          >
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            <span>Clear</span>
+          </button>
+
+          <!-- Primary Open Batch Print Button -->
+          <button 
+            id="btn-dock-open-batch-modal" 
+            class="btn-touch px-4 md:px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-lg shadow-blue-600/40 border border-blue-400/40"
+          >
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span id="btn-dock-print-text">Review & Print Batch (0)</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
 
   </main>
 
@@ -1170,13 +1242,173 @@
       </div>
 
       <!-- Footer Buttons -->
-      <div class="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between no-print">
-        <button onclick="document.getElementById('print-barcode-modal').classList.add('hidden')" class="btn-touch px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold">
-          Cancel
-        </button>
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between no-print gap-2">
+        <div class="flex items-center gap-2">
+          <button onclick="document.getElementById('print-barcode-modal').classList.add('hidden')" class="btn-touch px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold">
+            Cancel
+          </button>
+          <button id="btn-add-current-to-batch" class="btn-touch px-3.5 py-2 bg-blue-950 hover:bg-blue-900 text-blue-300 border border-blue-500/50 rounded-xl text-xs font-bold flex items-center gap-1.5" title="Add this item to the Batch Print Queue for combined printing">
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+            <span>+ Add to Batch Queue</span>
+          </button>
+        </div>
         <button id="btn-trigger-print-labels" class="btn-touch px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-blue-600/30">
           <i data-lucide="printer" class="w-4 h-4"></i>
           <span>PRINT BARCODE STICKERS NOW</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 6B: BATCH PRINT BARCODE & BOX STICKERS IN ONE GO -->
+  <div id="batch-print-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-2 md:p-6">
+    <div class="modal-enter w-full max-w-5xl bg-slate-950 border-2 border-blue-500/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[96vh]">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 px-5 py-4 border-b border-blue-500/40 flex items-center justify-between no-print">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black flex items-center justify-center shadow-lg shadow-blue-600/30">
+            <i data-lucide="layers" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-base md:text-lg font-black text-blue-100 flex items-center gap-2">
+              <span>Batch Barcode & Box Label Printing</span>
+              <span id="batch-modal-header-badge" class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] uppercase font-bold border border-blue-500/40">0 Products Selected</span>
+            </h2>
+            <p class="text-xs text-blue-300/80">Configure quantities for all parts and stream all stickers in a single continuous print job</p>
+          </div>
+        </div>
+        <button id="close-batch-print-modal-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-4 md:p-5 overflow-y-auto space-y-4 flex-1">
+        
+        <!-- TOP CONTROLS: LABEL FORMAT & GLOBAL BULK PRESETS -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-3 no-print">
+          
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Sticker Pricing & Cipher</label>
+            <select id="batch-print-style" class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold focus:border-blue-500 focus:outline-none">
+              <option value="dynamic_code" selected>🔒 Dynamic (Secret Cipher 'SANYO DELHI' • NO Price Printed)</option>
+              <option value="fixed_price">🏷️ Fixed MRP (With Printed Selling Price ₹)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Label Paper Size</label>
+            <select id="batch-label-size" class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold focus:border-blue-500 focus:outline-none">
+              <option value="50x35" selected>Standard Thermal (50mm x 35mm / 2" x 1.4")</option>
+              <option value="50x25">Compact Thermal (50mm x 25mm / 2" x 1")</option>
+              <option value="38x25">Mini Shelf Tag (38mm x 25mm / 1.5" x 1")</option>
+              <option value="75x50">Large Box Sticker (75mm x 50mm / 3" x 2")</option>
+              <option value="100x50">Giant Master Label (100mm x 50mm / 4" x 2")</option>
+              <option value="custom">📐 Custom Size (Set Exact mm Width x Height)</option>
+              <option value="a4-sheet">A4 Multi-Label Sticker Sheet</option>
+            </select>
+          </div>
+
+          <!-- CUSTOM SIZE INPUTS (SHOWN WHEN 'CUSTOM' IS SELECTED) -->
+          <div id="custom-batch-label-dimensions-box" class="hidden items-center gap-2 p-2 rounded-lg bg-slate-950 border border-purple-500/50">
+            <div class="flex items-center gap-1">
+              <label class="text-[11px] font-bold text-purple-300">W (mm):</label>
+              <input type="number" id="custom-batch-sticker-width" value="50" min="20" max="150" class="w-14 p-1 text-center font-bold rounded bg-slate-900 border border-slate-700 text-purple-200 text-xs" />
+            </div>
+            <span class="text-slate-500 font-bold">x</span>
+            <div class="flex items-center gap-1">
+              <label class="text-[11px] font-bold text-purple-300">H (mm):</label>
+              <input type="number" id="custom-batch-sticker-height" value="35" min="15" max="150" class="w-14 p-1 text-center font-bold rounded bg-slate-900 border border-slate-700 text-purple-200 text-xs" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Header Display</label>
+            <select id="batch-print-header-style" class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold focus:border-blue-500 focus:outline-none">
+              <option value="minimal" selected>📍 Minimal (Rack + Brand Only)</option>
+              <option value="none">🚫 None (Completely Clean Header)</option>
+              <option value="full">🏢 Full Store Name Header</option>
+            </select>
+          </div>
+
+          <!-- Bulk Quantity Preset Setter -->
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Set All Quantities To</label>
+            <div class="flex items-center gap-1">
+              <button class="btn-batch-bulk-qty px-2.5 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-200 font-bold" data-qty="1">1x Each</button>
+              <button class="btn-batch-bulk-qty px-2.5 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-200 font-bold" data-qty="2">2x Each</button>
+              <button class="btn-batch-bulk-qty px-2.5 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-200 font-bold" data-qty="5">5x Each</button>
+              <button class="btn-batch-bulk-qty px-2.5 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-200 font-bold" data-qty="10">10x Each</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- FAST SEARCH & ADD MORE PARTS INSIDE MODAL -->
+        <div class="relative no-print">
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input 
+                type="text" 
+                id="batch-search-add-input" 
+                placeholder="🔍 Type Part Name or Part # to quickly add more products to this batch print run..."
+                class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 placeholder-slate-500 text-xs font-semibold focus:border-blue-500 focus:outline-none shadow-sm"
+                autocomplete="off"
+              />
+            </div>
+            <button id="batch-clear-search-btn" class="hidden btn-touch px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-xl text-xs font-bold">
+              Clear
+            </button>
+          </div>
+          <!-- Auto-suggest dropdown -->
+          <div id="batch-search-suggestions" class="hidden absolute top-full left-0 right-0 mt-1 z-30 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-h-48 overflow-y-auto divide-y divide-slate-800">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+
+        <!-- MAIN SPLIT: PRODUCTS QUEUE LIST & LIVE STICKER PREVIEW -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          
+          <!-- LEFT / COLUMN 1: SELECTED PARTS QUEUE (5 Cols) -->
+          <div class="lg:col-span-5 flex flex-col gap-2">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
+              <span id="batch-items-count-label">Queue (0 Products)</span>
+              <button id="btn-batch-modal-clear-all" class="text-rose-400 hover:text-rose-300 text-xs normal-case font-semibold">
+                Clear All
+              </button>
+            </div>
+
+            <div id="batch-queue-items-list" class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+              <!-- Injected via JavaScript -->
+            </div>
+          </div>
+
+          <!-- RIGHT / COLUMN 2: REAL-TIME STICKERS PREVIEW (7 Cols) -->
+          <div class="lg:col-span-7 flex flex-col gap-2">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
+              <span>Continuous Output Preview</span>
+              <span id="batch-preview-count-label" class="text-emerald-400 font-normal">Ready to Stream</span>
+            </div>
+
+            <div id="batch-stickers-render-area" class="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-wrap gap-3 justify-center items-center overflow-y-auto max-h-[380px]">
+              <!-- Rendered via JavaScript -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between no-print">
+        <button onclick="document.getElementById('batch-print-modal').classList.add('hidden')" class="btn-touch px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold">
+          Cancel / Close
+        </button>
+        <button id="btn-trigger-batch-print-labels" class="btn-touch px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-blue-600/30 border border-blue-400/40">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span id="btn-trigger-batch-print-text">PRINT ALL STICKERS IN ONE GO</span>
         </button>
       </div>
 

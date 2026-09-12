@@ -304,7 +304,6 @@ export class InventoryManager {
       const isOutOfStock = totalStock === 0;
       const isLowStock = totalStock > 0 && totalStock <= minAlert;
       const hasGroundStash = groundStash > 0;
-
       const partDefectiveList = (this.app.defectiveReturns || []).filter(d => d.partId === part.id && d.status === 'pending_wholesaler');
       const hasPendingDefective = partDefectiveList.length > 0;
       const pendingDefectiveUnits = partDefectiveList.reduce((acc, d) => acc + (d.quantity || 1), 0);
@@ -312,15 +311,28 @@ export class InventoryManager {
       const brandObj = this.app.vehicleBrands.find(b => b.name.toLowerCase() === (part.vehicleBrand || '').toLowerCase() || b.id.toLowerCase() === (part.vehicleBrand || '').toLowerCase()) || { id: part.vehicleBrand, name: part.vehicleBrand };
       const brandLogoHtml = this.app.getBrandBadgeHtml(brandObj, false, 'xs');
 
+      const isBatchSelected = this.app.isPartInBatch ? this.app.isPartInBatch(part.id) : false;
+      const batchItem = this.app.batchPrintQueue ? this.app.batchPrintQueue.get(part.id) : null;
+      const batchQty = batchItem ? batchItem.quantity : 1;
+
       return `
         <div class="part-card rounded-2xl p-4 md:p-5 flex flex-col justify-between relative overflow-hidden ${
           hasGroundStash ? 'has-ground-stash' : ''
-        }" data-part-id="${part.id}">
+        } ${isBatchSelected ? 'is-batch-selected' : ''}" data-part-id="${part.id}">
           
-          <!-- TOP ROW: Vehicle Tag & Stock Badge -->
+          <!-- TOP ROW: Vehicle Tag, Multi-Select Checkbox & Stock Badge -->
           <div>
             <div class="flex items-start justify-between gap-2 mb-2">
-              <div class="flex flex-wrap items-center gap-1.5">
+              <div class="flex items-center gap-2 flex-wrap">
+                <!-- Multi-Select Checkbox for Batch Printing -->
+                <button 
+                  class="btn-toggle-batch-select card-select-checkbox ${isBatchSelected ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-500/40' : 'text-transparent'}"
+                  data-part-id="${part.id}"
+                  title="${isBatchSelected ? 'Remove from Batch Print Queue' : 'Select for Batch Printing'}"
+                >
+                  <i data-lucide="check" class="w-3.5 h-3.5 ${isBatchSelected ? 'stroke-[3]' : 'opacity-0'}"></i>
+                </button>
+
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 border border-slate-700 text-amber-400">
                   ${brandLogoHtml}
                   <span>${part.vehicleBrand}</span>
@@ -435,7 +447,7 @@ export class InventoryManager {
               <div class="p-2 rounded-xl bg-slate-900/90 border border-slate-800">
                 <div class="text-[10px] uppercase font-bold text-slate-400">2nd Floor</div>
                 <div class="text-base font-black font-mono ${floor2 > 0 ? 'text-blue-400' : 'text-slate-500'}">${floor2}</div>
-                <div class="text-[9px] text-slate-500 truncate">Heavy Storage</div>
+                <div class="text-[9px] text-slate-400 truncate">Heavy Storage</div>
               </div>
             </div>
 
@@ -482,11 +494,15 @@ export class InventoryManager {
               <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
             </button>
 
-            <!-- Print Barcode Sticker -->
+            <!-- Print Barcode Sticker (Single / Batch indicator) -->
             <button 
-              class="btn-print-part-label btn-touch p-2.5 rounded-xl bg-blue-950/60 hover:bg-blue-900/80 text-blue-300 border border-blue-500/40 text-xs font-bold transition-all"
+              class="btn-print-part-label btn-touch p-2.5 rounded-xl ${
+                isBatchSelected 
+                  ? 'bg-blue-600 text-white border-blue-400 shadow-md shadow-blue-600/30' 
+                  : 'bg-blue-950/60 hover:bg-blue-900/80 text-blue-300 border-blue-500/40'
+              } border text-xs font-bold transition-all"
               data-part-id="${part.id}"
-              title="Print Thermal Barcode Box Sticker"
+              title="${isBatchSelected ? `In Batch Queue (${batchQty}x) • Click to Print or Configure` : 'Print Thermal Barcode Box Sticker'}"
             >
               <i data-lucide="printer" class="w-4 h-4"></i>
             </button>

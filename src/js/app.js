@@ -37,6 +37,9 @@ class AutoPartsApp {
     this.selectedStatusTab = "all";
     this.printingPart = null;
 
+    // Batch Print Queue State (key: partId, value: { part, quantity })
+    this.batchPrintQueue = new Map();
+
     // Helper functions on App instance for modules
     this.getBrandBadgeHtml = getBrandBadgeHtml;
     this.getCategoryBadgeHtml = getCategoryBadgeHtml;
@@ -555,6 +558,321 @@ class AutoPartsApp {
     this.printingPart = null;
   }
 
+  // ================= BATCH PRINTING ENGINE & QUEUE CONTROLLER =================
+  isPartInBatch(partId) {
+    return this.batchPrintQueue.has(partId);
+  }
+
+  getBatchItemsList() {
+    return Array.from(this.batchPrintQueue.values());
+  }
+
+  getBatchTotalStickersCount() {
+    let total = 0;
+    for (let item of this.batchPrintQueue.values()) {
+      total += Math.max(1, parseInt(item.quantity, 10) || 1);
+    }
+    return total;
+  }
+
+  toggleBatchSelectPart(partId, initialQty = 1) {
+    const part = this.products.find(p => p.id === partId);
+    if (!part) return;
+
+    if (this.batchPrintQueue.has(partId)) {
+      this.batchPrintQueue.delete(partId);
+      this.sound.playClick();
+      this.showToast(`Removed "${part.name}" from Batch Print queue`, "info");
+    } else {
+      this.batchPrintQueue.set(partId, { part, quantity: initialQty || 1 });
+      this.sound.playClick();
+      this.showToast(`Added "${part.name}" to Batch Print queue (${this.batchPrintQueue.size} in batch)`, "success");
+    }
+
+    this.updateBatchFloatingBar();
+    this.renderProducts();
+
+    const batchModal = document.getElementById('batch-print-modal');
+    if (batchModal && !batchModal.classList.contains('hidden')) {
+      this.renderBatchModalList();
+      this.renderBatchStickersPreview();
+    }
+  }
+
+  addToBatchPrint(partId, qty = 1) {
+    const part = this.products.find(p => p.id === partId);
+    if (!part) return;
+
+    const existing = this.batchPrintQueue.get(partId);
+    const newQty = existing ? existing.quantity + qty : qty;
+    this.batchPrintQueue.set(partId, { part, quantity: newQty });
+    this.sound.playClick();
+    this.showToast(`Added "${part.name}" (${newQty} stickers) to Batch Queue`, "success");
+
+    this.updateBatchFloatingBar();
+    this.renderProducts();
+
+    const batchModal = document.getElementById('batch-print-modal');
+    if (batchModal && !batchModal.classList.contains('hidden')) {
+      this.renderBatchModalList();
+      this.renderBatchStickersPreview();
+    }
+  }
+
+  removeFromBatchPrint(partId) {
+    const item = this.batchPrintQueue.get(partId);
+    const name = item ? item.part.name : 'Product';
+    this.batchPrintQueue.delete(partId);
+    this.sound.playClick();
+    this.showToast(`Removed "${name}" from Batch Queue`, "info");
+
+    this.updateBatchFloatingBar();
+    this.renderProducts();
+
+    const batchModal = document.getElementById('batch-print-modal');
+    if (batchModal && !batchModal.classList.contains('hidden')) {
+      this.renderBatchModalList();
+      this.renderBatchStickersPreview();
+    }
+  }
+
+  updateBatchPrintQty(partId, qty) {
+    const item = this.batchPrintQueue.get(partId);
+    if (!item) return;
+
+    item.quantity = Math.max(1, parseInt(qty, 10) || 1);
+    this.updateBatchFloatingBar();
+    this.renderBatchStickersPreview();
+  }
+
+  setAllBatchQuantities(qty) {
+    const targetQty = Math.max(1, parseInt(qty, 10) || 1);
+    for (let item of this.batchPrintQueue.values()) {
+      item.quantity = targetQty;
+    }
+    this.sound.playClick();
+    this.showToast(`Set all batch items to ${targetQty} sticker(s) each`, "info");
+    this.updateBatchFloatingBar();
+    this.renderBatchModalList();
+    this.renderBatchStickersPreview();
+  }
+
+  selectAllFilteredParts() {
+    const filtered = this.inventoryManager.getFilteredProducts();
+    if (filtered.length === 0) {
+      this.showToast("No visible parts to select!", "warning");
+      return;
+    }
+
+    filtered.forEach(part => {
+      if (!this.batchPrintQueue.has(part.id)) {
+        this.batchPrintQueue.set(part.id, { part, quantity: 1 });
+      }
+    });
+
+    this.sound.playSaleChime();
+    this.showToast(`Selected ${filtered.length} parts for Batch Printing (${this.batchPrintQueue.size} in batch)!`, "success");
+    this.updateBatchFloatingBar();
+    this.renderProducts();
+
+    const batchModal = document.getElementById('batch-print-modal');
+    if (batchModal && !batchModal.classList.contains('hidden')) {
+      this.renderBatchModalList();
+      this.renderBatchStickersPreview();
+    }
+  }
+
+  clearBatchPrintQueue() {
+    this.batchPrintQueue.clear();
+    this.sound.playClick();
+    this.showToast("Batch Print Queue cleared", "info");
+    this.updateBatchFloatingBar();
+    this.renderProducts();
+
+    const batchModal = document.getElementById('batch-print-modal');
+    if (batchModal && !batchModal.classList.contains('hidden')) {
+      this.renderBatchModalList();
+      this.renderBatchStickersPreview();
+    }
+  }
+
+  updateBatchFloatingBar() {
+    const count = this.batchPrintQueue.size;
+    const totalStickers = this.getBatchTotalStickersCount();
+
+    const dock = document.getElementById('batch-action-bar');
+    const headerCountBadge = document.getElementById('header-batch-print-count');
+    const dockSelectedCount = document.getElementById('batch-dock-selected-count');
+    const dockStickersCount = document.getElementById('batch-dock-stickers-count');
+    const dockPrintText = document.getElementById('btn-dock-print-text');
+
+    if (headerCountBadge) {
+      headerCountBadge.textContent = count;
+      if (count > 0) {
+        headerCountBadge.classList.remove('bg-slate-700');
+        headerCountBadge.classList.add('bg-blue-600', 'animate-pulse');
+      } else {
+        headerCountBadge.classList.add('bg-slate-700');
+        headerCountBadge.classList.remove('bg-blue-600', 'animate-pulse');
+      }
+    }
+
+    if (dock) {
+      if (count > 0) {
+        dock.classList.remove('hidden');
+        dock.classList.add('flex');
+      } else {
+        dock.classList.add('hidden');
+        dock.classList.remove('flex');
+      }
+    }
+
+    if (dockSelectedCount) {
+      dockSelectedCount.textContent = `${count} Part${count === 1 ? '' : 's'} Selected`;
+    }
+
+    if (dockStickersCount) {
+      dockStickersCount.textContent = `${totalStickers} Sticker${totalStickers === 1 ? '' : 's'}`;
+    }
+
+    if (dockPrintText) {
+      dockPrintText.textContent = `Review & Print Batch (${count})`;
+    }
+  }
+
+  openBatchPrintModal() {
+    this.sound.playClick();
+    const modal = document.getElementById('batch-print-modal');
+    if (!modal) return;
+
+    this.renderBatchModalList();
+    this.renderBatchStickersPreview();
+
+    // Reset in-modal search input
+    const searchInput = document.getElementById('batch-search-add-input');
+    const suggestions = document.getElementById('batch-search-suggestions');
+    if (searchInput) searchInput.value = '';
+    if (suggestions) {
+      suggestions.innerHTML = '';
+      suggestions.classList.add('hidden');
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  closeBatchPrintModal() {
+    const modal = document.getElementById('batch-print-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  }
+
+  renderBatchModalList() {
+    const container = document.getElementById('batch-queue-items-list');
+    const countLabel = document.getElementById('batch-items-count-label');
+    const headerBadge = document.getElementById('batch-modal-header-badge');
+    const totalCount = this.batchPrintQueue.size;
+    const totalStickers = this.getBatchTotalStickersCount();
+
+    if (countLabel) countLabel.textContent = `Queue (${totalCount} Products • ${totalStickers} Stickers)`;
+    if (headerBadge) headerBadge.textContent = `${totalCount} Products (${totalStickers} Box Stickers)`;
+
+    if (!container) return;
+
+    if (totalCount === 0) {
+      container.innerHTML = `
+        <div class="p-6 text-center text-slate-400 bg-slate-900/60 rounded-xl border border-slate-800">
+          <i data-lucide="layers" class="w-8 h-8 mx-auto mb-2 text-slate-500"></i>
+          <div class="text-sm font-bold text-slate-200">Your Batch Print Queue is Empty</div>
+          <p class="text-xs text-slate-400 mt-1">Use the search bar above or check products on cards to add items.</p>
+        </div>
+      `;
+      if (window.lucide) lucide.createIcons();
+      return;
+    }
+
+    const items = this.getBatchItemsList();
+    container.innerHTML = items.map(item => {
+      const part = item.part;
+      const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
+      const cipherCode = this.barcodeEngine.encodeCostToCipher(part.costPrice);
+      const brandObj = this.vehicleBrands.find(b => b.name.toLowerCase() === (part.vehicleBrand || '').toLowerCase() || b.id.toLowerCase() === (part.vehicleBrand || '').toLowerCase()) || { id: part.vehicleBrand, name: part.vehicleBrand };
+      const brandLogoHtml = this.getBrandBadgeHtml(brandObj, false, 'xs');
+
+      return `
+        <div class="batch-queue-row p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-blue-500/40 flex items-center justify-between gap-3 transition-all" data-part-id="${part.id}">
+          
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-amber-300 border border-slate-700">
+                ${brandLogoHtml}
+                <span>${part.vehicleBrand}</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-950/70 text-blue-300 border border-blue-800/40">
+                ${part.partNumber}
+              </span>
+              <span class="text-[10px] text-slate-400 font-bold">📍 ${part.rackLocation || 'Rack A-01'}</span>
+            </div>
+
+            <div class="font-black text-slate-100 text-xs md:text-sm truncate mt-1">
+              ${part.name}
+            </div>
+
+            <div class="text-[11px] text-slate-400 font-mono flex items-center gap-2 mt-0.5">
+              <span class="text-emerald-400 font-bold">₹ ${(part.sellingPrice || 0).toLocaleString('en-IN')}</span>
+              <span>•</span>
+              <span class="text-slate-500">Cipher: [ ${cipherCode} ]</span>
+            </div>
+          </div>
+
+          <!-- Quantity Stepper & Remove Action -->
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden">
+              <button class="btn-batch-qty-minus w-7 h-7 flex items-center justify-center text-slate-300 hover:bg-slate-800 font-bold text-xs" data-part-id="${part.id}">-</button>
+              <input type="number" class="batch-qty-input w-10 text-center font-bold font-mono bg-transparent text-slate-100 text-xs focus:outline-none" value="${qty}" min="1" max="100" data-part-id="${part.id}" />
+              <button class="btn-batch-qty-plus w-7 h-7 flex items-center justify-center text-slate-300 hover:bg-slate-800 font-bold text-xs" data-part-id="${part.id}">+</button>
+            </div>
+
+            <button class="btn-batch-remove-item p-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/80 text-rose-400 hover:text-rose-200 border border-rose-800/40 transition-all" data-part-id="${part.id}" title="Remove from batch">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+        </div>
+      `;
+    }).join('');
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  renderBatchStickersPreview() {
+    const items = this.getBatchItemsList();
+    this.barcodeEngine.renderBatchStickersPreview(items, 'batch-stickers-render-area');
+
+    const printBtnText = document.getElementById('btn-trigger-batch-print-text');
+    const totalStickers = this.getBatchTotalStickersCount();
+    if (printBtnText) {
+      printBtnText.textContent = `PRINT ALL ${totalStickers} STICKER${totalStickers === 1 ? '' : 'S'} IN ONE GO`;
+    }
+  }
+
+  printBatchDirectly() {
+    const items = this.getBatchItemsList();
+    if (items.length === 0) {
+      this.sound.playWarningBeep();
+      this.showToast("Cannot print empty batch! Please select parts first.", "warning");
+      return;
+    }
+
+    const totalStickers = this.getBatchTotalStickersCount();
+    this.barcodeEngine.printBatchStickersDirectly(items, 'batch-label');
+    this.sound.playSaleChime();
+    this.showToast(`🖨️ Streaming ${totalStickers} box stickers for ${items.length} products to printer!`, "success");
+  }
+
   // Ground Floor Counter Stash Modal (Problem 2)
   openGroundStashModal() {
     this.sound.playClick();
@@ -952,6 +1270,13 @@ class AutoPartsApp {
     const productsGrid = document.getElementById('products-grid');
     if (productsGrid) {
       productsGrid.addEventListener('click', (e) => {
+        const batchToggleBtn = e.target.closest('.btn-toggle-batch-select');
+        if (batchToggleBtn) {
+          const partId = batchToggleBtn.dataset.partId;
+          this.toggleBatchSelectPart(partId);
+          return;
+        }
+
         const quickSellBtn = e.target.closest('.btn-quick-sell');
         if (quickSellBtn) {
           const partId = quickSellBtn.dataset.partId;
@@ -1165,14 +1490,210 @@ class AutoPartsApp {
       });
     }
 
-    const printModal = document.getElementById('print-barcode-modal');
-    if (printModal) {
-      printModal.addEventListener('click', (e) => {
-        const quickQtyBtn = e.target.closest('.btn-quick-qty');
-        if (quickQtyBtn && qtyInput) {
-          qtyInput.value = quickQtyBtn.dataset.qty;
-          if (this.printingPart) this.barcodeEngine.renderStickersPreview(this.printingPart);
+    // Single Barcode Print Modal: Add to Batch Button
+    const btnAddCurrentToBatch = document.getElementById('btn-add-current-to-batch');
+    if (btnAddCurrentToBatch) {
+      btnAddCurrentToBatch.addEventListener('click', () => {
+        if (!this.printingPart) return;
+        const qty = parseInt(qtyInput?.value || 1, 10) || 1;
+        this.addToBatchPrint(this.printingPart.id, qty);
+        this.closeBarcodePrintModal();
+      });
+    }
+
+    // Header Batch Print Button
+    const headerBatchBtn = document.getElementById('open-batch-print-btn');
+    if (headerBatchBtn) {
+      headerBatchBtn.addEventListener('click', () => this.openBatchPrintModal());
+    }
+
+    // Search Bar: Select All Visible / Filtered Button
+    const btnSelectAllFiltered = document.getElementById('btn-select-all-filtered');
+    if (btnSelectAllFiltered) {
+      btnSelectAllFiltered.addEventListener('click', () => this.selectAllFilteredParts());
+    }
+
+    // Floating Batch Dock Buttons
+    const dockOpenBatchModalBtn = document.getElementById('btn-dock-open-batch-modal');
+    if (dockOpenBatchModalBtn) {
+      dockOpenBatchModalBtn.addEventListener('click', () => this.openBatchPrintModal());
+    }
+
+    const dockClearBatchBtn = document.getElementById('btn-dock-clear-batch');
+    if (dockClearBatchBtn) {
+      dockClearBatchBtn.addEventListener('click', () => this.clearBatchPrintQueue());
+    }
+
+    document.querySelectorAll('.btn-dock-quick-qty').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const qty = parseInt(e.currentTarget.dataset.qty, 10) || 1;
+        this.setAllBatchQuantities(qty);
+      });
+    });
+
+    // ================= BATCH PRINT MODAL CONTROLS & LISTENERS =================
+    const closeBatchModalBtn = document.getElementById('close-batch-print-modal-btn');
+    if (closeBatchModalBtn) {
+      closeBatchModalBtn.addEventListener('click', () => this.closeBatchPrintModal());
+    }
+
+    const batchClearAllBtn = document.getElementById('btn-batch-modal-clear-all');
+    if (batchClearAllBtn) {
+      batchClearAllBtn.addEventListener('click', () => this.clearBatchPrintQueue());
+    }
+
+    const triggerBatchPrintBtn = document.getElementById('btn-trigger-batch-print-labels');
+    if (triggerBatchPrintBtn) {
+      triggerBatchPrintBtn.addEventListener('click', () => this.printBatchDirectly());
+    }
+
+    document.querySelectorAll('.btn-batch-bulk-qty').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const qty = parseInt(e.currentTarget.dataset.qty, 10) || 1;
+        this.setAllBatchQuantities(qty);
+      });
+    });
+
+    const batchSizeSelect = document.getElementById('batch-label-size');
+    const batchStyleSelect = document.getElementById('batch-print-style');
+    const batchHeaderStyleSelect = document.getElementById('batch-print-header-style');
+    const customBatchWidthInput = document.getElementById('custom-batch-sticker-width');
+    const customBatchHeightInput = document.getElementById('custom-batch-sticker-height');
+
+    [batchSizeSelect, batchStyleSelect, batchHeaderStyleSelect, customBatchWidthInput, customBatchHeightInput].forEach(el => {
+      if (el) {
+        el.addEventListener('input', () => this.renderBatchStickersPreview());
+        el.addEventListener('change', () => this.renderBatchStickersPreview());
+      }
+    });
+
+    // Batch Queue Items List Delegation (Quantity steppers & remove)
+    const batchQueueContainer = document.getElementById('batch-queue-items-list');
+    if (batchQueueContainer) {
+      batchQueueContainer.addEventListener('click', (e) => {
+        const plusBtn = e.target.closest('.btn-batch-qty-plus');
+        if (plusBtn) {
+          const partId = plusBtn.dataset.partId;
+          const currentItem = this.batchPrintQueue.get(partId);
+          if (currentItem) {
+            this.updateBatchPrintQty(partId, (currentItem.quantity || 1) + 1);
+            this.renderBatchModalList();
+          }
+          return;
         }
+
+        const minusBtn = e.target.closest('.btn-batch-qty-minus');
+        if (minusBtn) {
+          const partId = minusBtn.dataset.partId;
+          const currentItem = this.batchPrintQueue.get(partId);
+          if (currentItem) {
+            this.updateBatchPrintQty(partId, Math.max(1, (currentItem.quantity || 1) - 1));
+            this.renderBatchModalList();
+          }
+          return;
+        }
+
+        const removeBtn = e.target.closest('.btn-batch-remove-item');
+        if (removeBtn) {
+          const partId = removeBtn.dataset.partId;
+          this.removeFromBatchPrint(partId);
+          return;
+        }
+      });
+
+      batchQueueContainer.addEventListener('change', (e) => {
+        const qtyInput = e.target.closest('.batch-qty-input');
+        if (qtyInput) {
+          const partId = qtyInput.dataset.partId;
+          const val = Math.max(1, parseInt(qtyInput.value, 10) || 1);
+          qtyInput.value = val;
+          this.updateBatchPrintQty(partId, val);
+          this.renderBatchModalList();
+        }
+      });
+    }
+
+    // In-Modal Live Search & Fast Add
+    const batchSearchInput = document.getElementById('batch-search-add-input');
+    const batchSearchSuggestions = document.getElementById('batch-search-suggestions');
+    const batchClearSearchBtn = document.getElementById('batch-clear-search-btn');
+
+    if (batchSearchInput && batchSearchSuggestions) {
+      batchSearchInput.addEventListener('input', (e) => {
+        const query = e.target.value.trim().toLowerCase();
+        if (batchClearSearchBtn) {
+          batchClearSearchBtn.classList.toggle('hidden', query.length === 0);
+        }
+
+        if (query.length < 1) {
+          batchSearchSuggestions.innerHTML = '';
+          batchSearchSuggestions.classList.add('hidden');
+          return;
+        }
+
+        const matches = this.products.filter(p => {
+          const text = `${p.name} ${p.partNumber} ${p.brand} ${p.vehicleBrand} ${(p.compatibleModels || []).join(' ')} ${p.barcode || ''}`.toLowerCase();
+          return text.includes(query);
+        }).slice(0, 8);
+
+        if (matches.length === 0) {
+          batchSearchSuggestions.innerHTML = `
+            <div class="p-3 text-xs text-slate-400 text-center">
+              No parts found matching "${e.target.value}".
+            </div>
+          `;
+          batchSearchSuggestions.classList.remove('hidden');
+          return;
+        }
+
+        batchSearchSuggestions.innerHTML = matches.map(p => {
+          const inBatch = this.isPartInBatch(p.id);
+          return `
+            <div class="p-2.5 hover:bg-slate-800 flex items-center justify-between gap-2 cursor-pointer btn-add-suggested-part" data-part-id="${p.id}">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="font-black text-xs text-slate-200 truncate">${p.name}</span>
+                  <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-blue-950 text-blue-300 border border-blue-800/40">${p.partNumber}</span>
+                </div>
+                <div class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1.5">
+                  <span class="text-amber-400 font-semibold">${p.vehicleBrand}</span>
+                  <span>•</span>
+                  <span class="text-emerald-400 font-bold">₹ ${(p.sellingPrice || 0).toLocaleString('en-IN')}</span>
+                  <span>•</span>
+                  <span>📍 ${p.rackLocation || 'RACK'}</span>
+                </div>
+              </div>
+              <button class="btn-touch px-2.5 py-1 rounded-lg ${inBatch ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/50' : 'bg-blue-600 hover:bg-blue-500 text-white'} text-[11px] font-bold shrink-0 shadow-sm flex items-center gap-1">
+                <i data-lucide="${inBatch ? 'check' : 'plus'}" class="w-3 h-3"></i>
+                <span>${inBatch ? 'Added' : '+ Add'}</span>
+              </button>
+            </div>
+          `;
+        }).join('');
+
+        batchSearchSuggestions.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+      });
+
+      batchSearchSuggestions.addEventListener('click', (e) => {
+        const item = e.target.closest('.btn-add-suggested-part');
+        if (item) {
+          const partId = item.dataset.partId;
+          this.addToBatchPrint(partId, 1);
+          batchSearchInput.value = '';
+          batchSearchSuggestions.innerHTML = '';
+          batchSearchSuggestions.classList.add('hidden');
+          if (batchClearSearchBtn) batchClearSearchBtn.classList.add('hidden');
+        }
+      });
+    }
+
+    if (batchClearSearchBtn && batchSearchInput && batchSearchSuggestions) {
+      batchClearSearchBtn.addEventListener('click', () => {
+        batchSearchInput.value = '';
+        batchSearchSuggestions.innerHTML = '';
+        batchSearchSuggestions.classList.add('hidden');
+        batchClearSearchBtn.classList.add('hidden');
       });
     }
 
