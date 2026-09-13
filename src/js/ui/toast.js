@@ -5,7 +5,7 @@ export function showToast(message, type = "info", duration = 3200) {
   if (!container) return;
 
   const toast = document.createElement("div");
-  toast.className = `toast toast-${type} flex items-center justify-between gap-3 p-3.5 rounded-xl shadow-2xl text-xs md:text-sm font-bold border transition-all duration-300 pointer-events-auto`;
+  toast.className = `toast toast-${type} toast-in flex items-center justify-between gap-3 p-3.5 rounded-xl shadow-2xl text-xs md:text-sm font-bold border transition-all duration-300 pointer-events-auto backdrop-blur-md`;
 
   let iconName = "info";
   let bgClasses = "bg-slate-900/95 text-slate-100 border-slate-700";
@@ -37,7 +37,7 @@ export function showToast(message, type = "info", duration = 3200) {
 
   setTimeout(() => {
     toast.style.opacity = "0";
-    toast.style.transform = "translateY(10px) scale(0.95)";
+    toast.style.transform = "translateX(20px) scale(0.95)";
     setTimeout(() => toast.remove(), 300);
   }, duration);
 }

@@ -2282,8 +2282,8 @@
     </div>
   </div>
 
-  <!-- FLOATING TOAST NOTIFICATION CONTAINER -->
-  <div id="toast-container" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-full max-w-md px-4 no-print">
+  <!-- FLOATING TOAST NOTIFICATION CONTAINER (TOP RIGHT TO AVOID BOTTOM DOCK COLLISION) -->
+  <div id="toast-container" class="fixed top-16 sm:top-20 right-3 sm:right-6 z-50 flex flex-col gap-2 pointer-events-none w-full max-w-sm sm:max-w-md px-2 sm:px-0 no-print">
     <!-- Toasts injected dynamically -->
   </div>
 

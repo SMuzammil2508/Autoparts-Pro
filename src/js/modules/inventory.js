@@ -316,14 +316,14 @@ export class InventoryManager {
       const batchQty = batchItem ? batchItem.quantity : 1;
 
       return `
-        <div class="part-card rounded-2xl p-4 md:p-5 flex flex-col justify-between relative overflow-hidden ${
+        <div class="part-card rounded-2xl p-3.5 sm:p-4 md:p-5 flex flex-col justify-between relative overflow-hidden ${
           hasGroundStash ? 'has-ground-stash' : ''
         } ${isBatchSelected ? 'is-batch-selected' : ''}" data-part-id="${part.id}">
           
           <!-- TOP ROW: Vehicle Tag, Multi-Select Checkbox & Stock Badge -->
           <div>
-            <div class="flex items-start justify-between gap-2 mb-2">
-              <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
                 <!-- Multi-Select Checkbox for Batch Printing -->
                 <button 
                   class="btn-toggle-batch-select card-select-checkbox ${isBatchSelected ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-500/40' : 'text-transparent'}"
@@ -333,37 +333,42 @@ export class InventoryManager {
                   <i data-lucide="check" class="w-3.5 h-3.5 ${isBatchSelected ? 'stroke-[3]' : 'opacity-0'}"></i>
                 </button>
 
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 border border-slate-700 text-amber-400">
+                <span class="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 border border-slate-700 text-amber-400 shrink-0">
                   ${brandLogoHtml}
                   <span>${part.vehicleBrand}</span>
                 </span>
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-800">
+                <span class="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-800 shrink-0">
                   ${this.app.getCategoryBadgeHtml({ name: part.category }, false)}
                   <span>${part.category}</span>
                 </span>
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-blue-950/60 border border-blue-800/40 text-blue-300">
-                  ${part.partNumber}
-                </span>
-                <!-- Barcode Tag -->
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-950/40 border border-emerald-800/40 text-emerald-300 flex items-center gap-1" title="Product Barcode / SKU">
-                  <i data-lucide="barcode" class="w-3 h-3 text-emerald-400"></i> ${part.barcode || part.partNumber}
-                </span>
               </div>
 
-              <!-- Stock Status Pill -->
-              ${
-                isOutOfStock
-                  ? `<span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-950 border border-rose-700/60 text-rose-400 flex items-center gap-1">
-                      <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> OUT OF STOCK
-                    </span>`
-                  : isLowStock
-                  ? `<span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-950 border border-amber-600/60 text-amber-300 flex items-center gap-1">
-                      <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> ONLY ${totalStock} LEFT
-                    </span>`
-                  : `<span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-950 border border-emerald-600/50 text-emerald-300 flex items-center gap-1">
-                      <i data-lucide="check" class="w-3.5 h-3.5"></i> ${totalStock} IN STOCK
-                    </span>`
-              }
+              <!-- Stock Status Pill (Always Fixed, Never Squished, Never Broken) -->
+              <div class="shrink-0 whitespace-nowrap">
+                ${
+                  isOutOfStock
+                    ? `<span class="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-bold bg-rose-950 border border-rose-700/60 text-rose-400 whitespace-nowrap">
+                        <i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0"></i> OUT OF STOCK
+                      </span>`
+                    : isLowStock
+                    ? `<span class="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-bold bg-amber-950 border border-amber-600/60 text-amber-300 whitespace-nowrap">
+                        <i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i> ONLY ${totalStock} LEFT
+                      </span>`
+                    : `<span class="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-bold bg-emerald-950 border border-emerald-600/50 text-emerald-300 whitespace-nowrap">
+                        <i data-lucide="check" class="w-3.5 h-3.5 shrink-0"></i> ${totalStock} IN STOCK
+                      </span>`
+                }
+              </div>
+            </div>
+
+            <!-- SUB ROW: Part Number (SKU) & Barcode Identifier Tags -->
+            <div class="flex items-center gap-1.5 flex-wrap mb-2.5">
+              <span class="px-2 sm:px-2.5 py-0.5 rounded-md text-[11px] sm:text-xs font-mono font-semibold bg-blue-950/60 border border-blue-800/40 text-blue-300 shrink-0">
+                ${part.partNumber}
+              </span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-mono font-semibold bg-emerald-950/40 border border-emerald-800/40 text-emerald-300 flex items-center gap-1 shrink-0" title="Product Barcode / SKU">
+                <i data-lucide="barcode" class="w-3 h-3 text-emerald-400"></i> ${part.barcode || part.partNumber}
+              </span>
             </div>
 
             <!-- PART NAME & BRAND -->
