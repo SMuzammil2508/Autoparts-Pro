@@ -547,6 +547,86 @@ html, body {
   }
 }
 
+/* ================= 4-WORKSPACE NAVIGATION & TAB STYLES ================= */
+.workspace-nav-tab {
+  user-select: none;
+  border: 1px solid transparent;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.workspace-nav-tab.active {
+  background: rgba(30, 41, 59, 0.95);
+  color: #f8fafc;
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.5), 0 0 10px rgba(245, 158, 11, 0.15);
+}
+
+.workspace-nav-tab[data-workspace="outflow"].active {
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.5), 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+.workspace-nav-tab[data-workspace="pricing"].active {
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.5), 0 0 10px rgba(168, 85, 247, 0.2);
+}
+
+.workspace-nav-tab[data-workspace="claims"].active {
+  border-color: rgba(244, 63, 94, 0.6);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.5), 0 0 10px rgba(244, 63, 94, 0.2);
+}
+
+/* Workspace View Containers */
+.workspace-view {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  width: 100%;
+}
+
+.workspace-view.hidden {
+  display: none !important;
+}
+
+/* Horizontal Filter Ribbon Scrollbars & No-Scrollbar Utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.horizontal-ribbon {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Keyboard Shortcut KBD Badge */
+.kbd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: #94a3b8;
+  background-color: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 6px;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Single-Row Filter Chips */
+.brand-chip, .cat-chip, .subcat-chip {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 @media (max-width: 1440px) {
   .batch-dock-container {
     bottom: 16px;

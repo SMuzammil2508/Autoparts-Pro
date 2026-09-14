@@ -3,7 +3,7 @@
 
 import { sound } from './core/audio.js';
 import { StorageManager } from './core/storage.js';
-import { getBrandBadgeHtml, getCategoryBadgeHtml } from './ui/emblems.js?v=1.1.4';
+import { getBrandBadgeHtml, getCategoryBadgeHtml } from './ui/emblems.js';
 import { showToast } from './ui/toast.js';
 import { SUB_CATEGORIES_CONFIG } from './config/subcategories.js';
 
@@ -20,6 +20,9 @@ class AutoPartsApp {
   constructor() {
     this.storage = StorageManager;
     this.sound = sound;
+
+    // Active Workspace State ('counter' | 'outflow' | 'pricing' | 'claims')
+    this.currentWorkspace = "counter";
 
     // Core State
     this.products = this.storage.getProducts();
@@ -70,14 +73,15 @@ class AutoPartsApp {
     this.renderProducts();
     this.updateHeaderStats();
 
-    // Bind Event Listeners
+    // Bind Event Listeners & Global Keyboard Shortcuts
     this.setupEventListeners();
+    this.setupGlobalKeyboardShortcuts();
 
     // Initialize Supabase Live Cloud Sync & Realtime Multi-Device WebSockets
     this.storage.initCloudSync(this);
 
     if (window.lucide) lucide.createIcons();
-    console.log("🚀 AutoParts Pro Engine initialized with Live Supabase Cloud Sync.");
+    console.log("🚀 AutoParts Pro Engine initialized with 4-Workspace Navigation & Live Cloud Sync.");
   }
 
   saveProducts() {
@@ -87,6 +91,133 @@ class AutoPartsApp {
   formatCurrency(num) {
     const symbol = this.settings.currencySymbol || "₹";
     return `${symbol} ${(num || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+  }
+
+  // 4-Workspace Switcher (Zero-Friction State Preservation)
+  switchWorkspace(workspaceName = 'counter') {
+    this.currentWorkspace = workspaceName;
+    this.sound.playClick();
+
+    // 1. Update Workspace Navigation Tabs
+    const navTabs = document.querySelectorAll('.workspace-nav-tab');
+    navTabs.forEach(tab => {
+      const isTarget = tab.dataset.workspace === workspaceName;
+      tab.classList.toggle('active', isTarget);
+      if (isTarget) {
+        tab.classList.remove('text-slate-400', 'hover:text-slate-200', 'hover:bg-slate-900/60');
+      } else {
+        tab.classList.add('text-slate-400', 'hover:text-slate-200', 'hover:bg-slate-900/60');
+      }
+    });
+
+    // 2. Update Workspace View Visibility
+    const views = document.querySelectorAll('.workspace-view');
+    views.forEach(view => {
+      const isTarget = view.id === `workspace-view-${workspaceName}`;
+      view.classList.toggle('hidden', !isTarget);
+      view.classList.toggle('active', isTarget);
+    });
+
+    // 3. Update Dynamic Contextual Action in Header
+    const contextualContainer = document.getElementById('header-contextual-actions');
+    if (contextualContainer) {
+      if (workspaceName === 'counter') {
+        contextualContainer.innerHTML = `
+          <button 
+            id="open-add-part-btn" 
+            class="contextual-action btn-touch flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs md:text-sm transition-all shadow-md shadow-blue-600/30 shrink-0 cursor-pointer"
+            title="Add a new auto part to the catalog"
+          >
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Add Part</span>
+          </button>
+        `;
+        document.getElementById('open-add-part-btn')?.addEventListener('click', () => this.inventoryManager.openAddPartModal());
+      } else if (workspaceName === 'outflow') {
+        contextualContainer.innerHTML = `
+          <button 
+            id="header-action-print-outflow" 
+            class="contextual-action btn-touch flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs md:text-sm transition-all border border-slate-700 shrink-0 cursor-pointer"
+            title="Print the Daily Sales Outflow Ledger"
+          >
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Print Ledger</span>
+          </button>
+        `;
+        document.getElementById('header-action-print-outflow')?.addEventListener('click', () => this.printOutflowLedger());
+      } else if (workspaceName === 'pricing') {
+        contextualContainer.innerHTML = `
+          <button 
+            id="header-action-add-brand" 
+            class="contextual-action btn-touch flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs md:text-sm transition-all shadow-md shadow-purple-600/30 shrink-0 cursor-pointer"
+            title="Manage Car Brands and Product Categories"
+          >
+            <i data-lucide="tags" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Manage Brands</span>
+          </button>
+        `;
+        document.getElementById('header-action-add-brand')?.addEventListener('click', () => this.taxonomyManager.openTaxonomyModal('brands'));
+      } else if (workspaceName === 'claims') {
+        contextualContainer.innerHTML = `
+          <button 
+            id="header-action-print-claims" 
+            class="contextual-action btn-touch flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs md:text-sm transition-all shadow-md shadow-rose-600/30 shrink-0 cursor-pointer"
+            title="Print Distributor Return Claim Sheet"
+          >
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Debit Note</span>
+          </button>
+        `;
+        document.getElementById('header-action-print-claims')?.addEventListener('click', () => this.returnsManager.printWholesalerClaimSheet());
+      }
+    }
+
+    // 4. Trigger target workspace data render
+    if (workspaceName === 'outflow') {
+      this.renderOutflowTableWithFilter('today');
+    } else if (workspaceName === 'pricing') {
+      this.priceRevisionManager.populatePriceRevisionDropdowns();
+      this.priceRevisionManager.calculateBrandPriceRevisionPreview();
+    } else if (workspaceName === 'claims') {
+      this.returnsManager.renderDefectiveClaimsTable('pending');
+    }
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // Keyboard-First Shortcut Engine (/ and Ctrl+K)
+  setupGlobalKeyboardShortcuts() {
+    window.addEventListener('keydown', (e) => {
+      const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+      const isEditable = document.activeElement && (document.activeElement.isContentEditable || activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select');
+
+      // Slash (/) or Ctrl+K / Cmd+K focuses search input
+      if ((e.key === '/' && !isEditable) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
+        e.preventDefault();
+        if (this.currentWorkspace !== 'counter') {
+          this.switchWorkspace('counter');
+        }
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        }
+      }
+
+      // Escape key clears search or closes modal
+      if (e.key === 'Escape') {
+        const searchInput = document.getElementById('search-input');
+        if (document.activeElement === searchInput) {
+          if (this.searchQuery) {
+            this.searchQuery = '';
+            searchInput.value = '';
+            document.getElementById('clear-search-btn')?.classList.add('hidden');
+            this.renderProducts();
+          }
+          searchInput.blur();
+        }
+      }
+    });
   }
 
   // Header Counters & Statistics
@@ -105,7 +236,7 @@ class AutoPartsApp {
     const pendingDefectiveClaims = this.storage.getDefectiveReturns().filter(c => c.status === 'pending_wholesaler');
     const pendingClaimsCount = pendingDefectiveClaims.reduce((acc, c) => acc + (c.quantity || 1), 0);
 
-    // Header Counter Stash & Defective badges
+    // Header Counter Stash Badge
     const headerStashBadge = document.getElementById('ground-stash-header-badge');
     const elGroundStash = document.getElementById('ground-stash-count-num') || document.getElementById('header-ground-stash-count');
     const elClaimsBadge = document.getElementById('defective-pending-count') || document.getElementById('header-defective-claims-count');
@@ -122,6 +253,19 @@ class AutoPartsApp {
 
     if (elGroundStash) elGroundStash.textContent = totalGroundStash;
     if (elClaimsBadge) elClaimsBadge.textContent = pendingClaimsCount;
+
+    // Navigation Tab Badges
+    const navClaimsBadge = document.getElementById('nav-defective-pending-count');
+    if (navClaimsBadge) {
+      navClaimsBadge.textContent = pendingClaimsCount;
+      if (pendingClaimsCount > 0) {
+        navClaimsBadge.classList.remove('hidden');
+        navClaimsBadge.classList.add('inline-block');
+      } else {
+        navClaimsBadge.classList.add('hidden');
+        navClaimsBadge.classList.remove('inline-block');
+      }
+    }
 
     // Status Filter Tab Counters
     const tabAllCount = document.getElementById('tab-count-all');
@@ -146,11 +290,14 @@ class AutoPartsApp {
 
     const elTodaySales = document.getElementById('header-today-sales-count');
     const elTodayRev = document.getElementById('header-today-revenue');
+    const navTodayRev = document.getElementById('nav-today-revenue');
+
     if (elTodaySales) elTodaySales.textContent = `${todayItemCount} pcs sold today`;
     if (elTodayRev) elTodayRev.textContent = this.formatCurrency(todayTotalRevenue);
+    if (navTodayRev) navTodayRev.textContent = this.formatCurrency(todayTotalRevenue);
   }
 
-  // Brand Chips Quick Ribbon (Multi-Line Wrapping)
+  // Compact Single-Row Horizontal Brand Chips Ribbon
   renderBrandChips() {
     const container = document.getElementById('brand-chips-container');
     if (!container) return;
@@ -161,7 +308,7 @@ class AutoPartsApp {
       return `
         <button 
           data-brand-id="${brand.id}" 
-          class="brand-chip btn-touch flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs md:text-sm font-semibold transition-all border ${
+          class="brand-chip btn-touch flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 cursor-pointer ${
             isSelected 
               ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20' 
               : 'bg-slate-900/80 text-slate-300 border-slate-700/60 hover:bg-slate-800 hover:border-slate-600'
@@ -176,11 +323,11 @@ class AutoPartsApp {
     const addBtnHtml = `
       <button 
         id="btn-quick-manage-brands" 
-        class="btn-touch flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border border-dashed border-amber-500/50 bg-amber-950/20 hover:bg-amber-950/50 text-amber-300 shadow-sm"
+        class="btn-touch flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-dashed border-amber-500/50 bg-amber-950/20 hover:bg-amber-950/50 text-amber-300 shadow-sm shrink-0 cursor-pointer"
         title="Add new car brand / manufacturer (e.g. Mahindra, Tata, Kia)"
       >
         <i data-lucide="plus" class="w-3.5 h-3.5 text-amber-400"></i>
-        <span>+ Add Brand</span>
+        <span class="hidden sm:inline">Add Brand</span>
       </button>
     `;
 
@@ -188,7 +335,7 @@ class AutoPartsApp {
     if (window.lucide) lucide.createIcons();
   }
 
-  // Category Chips Quick Ribbon (Multi-Line Wrapping)
+  // Compact Single-Row Horizontal Category Chips Ribbon
   renderCategoryChips() {
     const container = document.getElementById('category-chips-container');
     if (!container) return;
@@ -199,7 +346,7 @@ class AutoPartsApp {
       return `
         <button 
           data-cat-id="${cat.id}" 
-          class="cat-chip btn-touch flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-all border ${
+          class="cat-chip btn-touch flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border shrink-0 cursor-pointer ${
             isSelected 
               ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/20' 
               : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-slate-200'
@@ -214,11 +361,11 @@ class AutoPartsApp {
     const addBtnHtml = `
       <button 
         id="btn-quick-manage-categories" 
-        class="btn-touch flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-dashed border-blue-500/50 bg-blue-950/20 hover:bg-blue-950/50 text-blue-300 shadow-sm"
+        class="btn-touch flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-dashed border-blue-500/50 bg-blue-950/20 hover:bg-blue-950/50 text-blue-300 shadow-sm shrink-0 cursor-pointer"
         title="Add new auto part category (e.g. Engine Oils, Sensors, AC)"
       >
         <i data-lucide="plus" class="w-3.5 h-3.5 text-blue-400"></i>
-        <span>+ Add Category</span>
+        <span class="hidden sm:inline">Add Category</span>
       </button>
     `;
 
@@ -1127,6 +1274,17 @@ class AutoPartsApp {
 
   // Event Listeners Binding
   setupEventListeners() {
+    // 4-Workspace Navigation Tabs Switcher
+    const workspaceNav = document.getElementById('workspace-nav');
+    if (workspaceNav) {
+      workspaceNav.addEventListener('click', (e) => {
+        const tabBtn = e.target.closest('.workspace-nav-tab');
+        if (tabBtn && tabBtn.dataset.workspace) {
+          this.switchWorkspace(tabBtn.dataset.workspace);
+        }
+      });
+    }
+
     // Search input typing
     const searchInput = document.getElementById('search-input');
     const clearSearchBtn = document.getElementById('clear-search-btn');
