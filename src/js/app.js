@@ -3,7 +3,7 @@
 
 import { sound } from './core/audio.js';
 import { StorageManager } from './core/storage.js';
-import { getBrandBadgeHtml, getCategoryBadgeHtml } from './ui/emblems.js?v=1.1.2';
+import { getBrandBadgeHtml, getCategoryBadgeHtml } from './ui/emblems.js?v=1.1.3';
 import { showToast } from './ui/toast.js';
 import { SUB_CATEGORIES_CONFIG } from './config/subcategories.js';
 
