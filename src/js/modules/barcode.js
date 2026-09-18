@@ -122,34 +122,37 @@ export class BarcodeEngine {
     const {
       previewWidthPx = 350,
       previewHeightPx = 233,
-      headerStyle = 'minimal',
+      headerStyle = 'full',
       isDynamic = true
     } = options;
 
-    const storeName = this.settings.storeName || "CITY AUTO PARTS & SPARES";
-    const barcodeNumber = part.barcode || part.partNumber;
+    const storeName = this.settings.storeName || "DECENT MOTOR ACCESSORIES";
+    const barcodeNumber = part.barcode || part.partNumber || "PART";
     const barcodeSvg = this.generateBarcodeSVG(barcodeNumber);
-    const modelsStr = (part.compatibleModels || []).join(', ') || part.vehicleBrand;
+    const modelsStr = (part.compatibleModels && part.compatibleModels.length > 0)
+      ? part.compatibleModels.filter(Boolean).join(', ')
+      : (part.vehicleBrand || 'UNIVERSAL FIT');
+    const priceStr = `₹ ${(part.sellingPrice || 0).toLocaleString('en-IN')}`;
     const cipherCode = this.encodeCostToCipher(part.costPrice);
 
     return `
-      <div class="product-box-sticker" style="background:#ffffff; color:#000000; border:2.5px solid #000000; padding:8px 10px; border-radius:6px; width:${previewWidthPx}px; height:${previewHeightPx}px; display:flex; flex-direction:column; justify-content:space-between; margin:4px; box-shadow:0 4px 14px rgba(0,0,0,0.35); box-sizing:border-box; overflow:hidden;">
+      <div class="product-box-sticker" style="background:#ffffff; color:#000000; border:2px solid #000000; padding:10px 14px; border-radius:6px; width:${previewWidthPx}px; height:${previewHeightPx}px; display:flex; flex-direction:column; justify-content:space-between; margin:4px; box-shadow:0 4px 14px rgba(0,0,0,0.35); box-sizing:border-box; overflow:hidden;">
         
         ${
           headerStyle === 'none' ? '' :
           headerStyle === 'minimal' ? `
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #000000; padding-bottom:2px; margin-bottom:3px;">
-              <div style="font-size:9.5px; font-weight:800; text-transform:uppercase; color:#000000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                📍 ${part.rackLocation || 'RACK'} &bull; <b>${part.brand || 'OEM'}</b>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #000000; padding-bottom:3px; margin-bottom:3px;">
+              <div style="font-size:10px; font-weight:900; text-transform:uppercase; color:#000000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                ${part.brand || 'OEM'} &bull; ${part.partNumber || barcodeNumber}
               </div>
-              <div style="font-size:8.5px; font-weight:900; background:#000000; color:#ffffff; padding:1px 5px; border-radius:3px; white-space:nowrap;">
-                ${part.partNumber}
+              <div style="font-size:9px; font-weight:900; background:#000000; color:#ffffff; padding:2px 8px; border-radius:4px; white-space:nowrap;">
+                📍 ${part.rackLocation || 'RACK'}
               </div>
             </div>
           ` : `
-            <div style="border-bottom:1.5px solid #000000; padding-bottom:2px; margin-bottom:3px; display:flex; justify-content:space-between; align-items:center;">
-              <div style="font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; color:#000000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${storeName}</div>
-              <div style="font-size:8.5px; font-weight:800; background:#000000; color:#ffffff; padding:1px 5px; border-radius:3px; white-space:nowrap;">
+            <div style="border-bottom:1.5px solid #000000; padding-bottom:3px; margin-bottom:3px; display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-size:10.5px; font-weight:900; text-transform:uppercase; letter-spacing:0.3px; color:#000000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${storeName}</div>
+              <div style="font-size:9px; font-weight:900; background:#000000; color:#ffffff; padding:2px 8px; border-radius:4px; white-space:nowrap;">
                 📍 ${part.rackLocation || 'RACK'}
               </div>
             </div>
@@ -157,36 +160,33 @@ export class BarcodeEngine {
         }
 
         <!-- 1ST VERY BIG THING: APPLICATION CARS -->
-        <div style="background:#f1f5f9; border:1.8px solid #000000; border-radius:4px; padding:4px 6px; margin:1px 0 3px 0;">
-          <div style="font-size:8px; font-weight:900; text-transform:uppercase; color:#475569; letter-spacing:0.5px;">🚗 CAR FITMENT / APPLICATION:</div>
+        <div style="background:#f8fafc; border:1.8px solid #000000; border-radius:4px; padding:4px 7px; margin:1px 0 3px 0;">
+          <div style="font-size:8px; font-weight:900; text-transform:uppercase; color:#475569; letter-spacing:0.4px;">🚗 CAR FITMENT / APPLICATION:</div>
           <div style="font-size:13.5px; font-weight:900; color:#000000; line-height:1.15; text-transform:uppercase; max-height:2.4em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
             ${modelsStr}
           </div>
         </div>
 
         <!-- PART NAME -->
-        <div style="font-size:10.5px; font-weight:800; color:#1e293b; line-height:1.15; margin-bottom:2px; max-height:2.3em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
-          ${part.name}
+        <div style="font-size:10.5px; font-weight:900; color:#0f172a; line-height:1.15; text-transform:uppercase; margin-bottom:2px; max-height:2.3em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
+          ${part.name || 'Auto Spare Part'}
         </div>
 
         <!-- FULL-WIDTH 1D LASER BARCODE -->
         <div style="background:#ffffff; padding:2px 0; border-radius:4px; margin:1px 0; text-align:center;">
           ${barcodeSvg}
-          <div style="font-family:monospace; font-size:9px; font-weight:900; letter-spacing:1.5px; color:#000000; margin-top:1px;">
+          <div style="font-family:monospace; font-size:9.5px; font-weight:900; letter-spacing:1.5px; color:#000000; margin-top:1px;">
             * ${barcodeNumber} *
           </div>
         </div>
 
-        <!-- 2ND VERY BIG THING: THE CIPHER CODE OR MRP -->
+        <!-- 2ND VERY BIG THING: THE CIPHER CODE OR MRP (GENUINE TEXT REMOVED) -->
         ${
           isDynamic 
             ? `
-              <div style="background:#000000; color:#ffffff; border-radius:4px; padding:4px 8px; margin-top:2px; display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap; gap:6px;">
-                <div style="font-size:clamp(12px, 3.6vw, 15px); font-weight:900; font-family:monospace; letter-spacing:1.5px; color:#ffffff; line-height:1; white-space:nowrap; flex-shrink:0; display:inline-block;">
+              <div style="background:#000000; color:#ffffff; border-radius:4px; padding:5px 8px; margin-top:2px; display:flex; justify-content:center; align-items:center;">
+                <div style="font-size:clamp(14px, 4vw, 17px); font-weight:900; font-family:monospace; letter-spacing:3px; color:#ffffff; line-height:1; white-space:nowrap; text-align:center;">
                   [ ${cipherCode} ]
-                </div>
-                <div style="font-size:7.5px; font-weight:900; text-transform:uppercase; color:#34d399; text-align:right; line-height:1.1; white-space:nowrap; flex-shrink:0;">
-                  ★ GENUINE OES ★<br>SCAN FOR LIVE PRICE
                 </div>
               </div>
             `
@@ -195,10 +195,10 @@ export class BarcodeEngine {
                 <div>
                   <div style="font-size:7.5px; font-weight:800; text-transform:uppercase; color:#94a3b8;">MRP:</div>
                   <div style="font-size:15px; font-weight:900; font-family:monospace; color:#38bdf8; line-height:1; white-space:nowrap;">
-                    ₹ ${(part.sellingPrice || 0).toLocaleString('en-IN')}
+                    ${priceStr}
                   </div>
                 </div>
-                <div style="font-size:13px; font-weight:900; font-family:monospace; color:#ffffff; letter-spacing:1px; white-space:nowrap; flex-shrink:0; display:inline-block;">
+                <div style="font-size:14px; font-weight:900; font-family:monospace; color:#ffffff; letter-spacing:2px; white-space:nowrap; flex-shrink:0;">
                   [ ${cipherCode} ]
                 </div>
               </div>
@@ -212,14 +212,14 @@ export class BarcodeEngine {
   // Helper: Generates Direct Print Card HTML for thermal roll & printer
   generatePrintCardHtml(part, options = {}) {
     const {
-      headerStyle = 'minimal',
+      headerStyle = 'full',
       isDynamic = true,
       sizeFormat = '75x50',
       widthMm = 76.2,
       heightMm = 50.8
     } = options;
 
-    const storeName = this.settings.storeName || "CITY AUTO PARTS & SPARES";
+    const storeName = this.settings.storeName || "DECENT MOTOR ACCESSORIES";
     const barcodeNumber = part.barcode || part.partNumber || "PART";
     const barcodeSvg = this.generateBarcodeSVG(barcodeNumber);
     const modelsStr = (part.compatibleModels && part.compatibleModels.length > 0)
@@ -234,8 +234,8 @@ export class BarcodeEngine {
           headerStyle === 'none' ? '' :
           headerStyle === 'minimal' ? `
             <div class="sticker-header">
-              <span class="rack-badge">📍 ${part.rackLocation || 'RACK'} &bull; ${part.brand || 'OEM'}</span>
-              <span class="part-sku-badge">${part.partNumber || barcodeNumber}</span>
+              <span class="store-name">${part.brand || 'OEM'} &bull; ${part.partNumber || barcodeNumber}</span>
+              <span class="rack-badge">📍 ${part.rackLocation || 'RACK'}</span>
             </div>
           ` : `
             <div class="sticker-header">
@@ -261,17 +261,16 @@ export class BarcodeEngine {
           ${
             isDynamic 
               ? `
-                <div class="code-val">
-                  [ ${cipherCode} ]
-                </div>
-                <div class="scan-tag">★ GENUINE OES ★<br>SCAN FOR LIVE PRICE</div>
+                <div class="code-val">[ ${cipherCode} ]</div>
               `
               : `
-                <div>
-                  <div class="code-label">MRP:</div>
-                  <div class="mrp-val">${priceStr}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                  <div>
+                    <span class="code-label">MRP:</span>
+                    <span class="mrp-val">${priceStr}</span>
+                  </div>
+                  <div class="code-val">[ ${cipherCode} ]</div>
                 </div>
-                <div class="code-val">[ ${cipherCode} ]</div>
               `
           }
         </div>
@@ -489,14 +488,14 @@ export class BarcodeEngine {
                 width: 100%;
               }
               .sticker-card {
-                width: ${widthMm - 1.6}mm;
-                height: ${heightMm - 1.6}mm;
-                max-width: ${widthMm - 1.6}mm;
-                max-height: ${heightMm - 1.6}mm;
-                margin: 0.8mm auto;
-                border: 1.8px solid #000000;
+                width: calc(100% - 1mm);
+                height: calc(100% - 1.2mm);
+                max-width: ${widthMm}mm;
+                max-height: ${heightMm - 1.2}mm;
+                margin: 0.6mm auto;
+                border: 1.6px solid #000000;
                 border-radius: 4px;
-                padding: 1.4mm 2mm;
+                padding: 1.2mm 2.2mm;
                 background: #ffffff !important;
                 box-sizing: border-box;
                 display: flex;
@@ -521,21 +520,26 @@ export class BarcodeEngine {
             margin-bottom: 0.6mm;
           }
           .store-name {
-            font-size: 7pt;
+            font-size: 7.5pt;
             font-weight: 900;
             text-transform: uppercase;
+            letter-spacing: 0.3px;
             color: #000000;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
           }
           .rack-badge {
-            font-size: 7pt;
-            font-weight: 800;
-            color: #000000;
+            font-size: 6.8pt;
+            font-weight: 900;
+            background: #000000 !important;
+            color: #ffffff !important;
+            padding: 1.2px 6px;
+            border-radius: 3px;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            display: inline-block;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           .part-sku-badge {
             font-size: 7pt;
@@ -548,19 +552,22 @@ export class BarcodeEngine {
           }
           .vehicle-fitment-box {
             background: #f1f5f9 !important;
-            border: 1.5px solid #000000;
+            border: 1.4px solid #000000;
             border-radius: 3px;
-            padding: 0.8mm 1.5mm;
+            padding: 0.8mm 1.6mm;
             margin-bottom: 0.6mm;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           .fitment-label {
-            font-size: 5.8pt;
+            font-size: 6pt;
             font-weight: 900;
             text-transform: uppercase;
             color: #334155;
+            letter-spacing: 0.3px;
           }
           .fitment-cars {
-            font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '8pt' : '10pt'};
+            font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '8pt' : '10.5pt'};
             font-weight: 900;
             color: #000000;
             line-height: 1.15;
@@ -572,11 +579,12 @@ export class BarcodeEngine {
             -webkit-box-orient: vertical;
           }
           .part-title {
-            font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '7pt' : '8pt'};
-            font-weight: 800;
-            color: #1e293b;
+            font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '7pt' : '8.5pt'};
+            font-weight: 900;
+            color: #0f172a;
             line-height: 1.15;
             margin-bottom: 0.6mm;
+            text-transform: uppercase;
             max-height: 2.2em;
             overflow: hidden;
             display: -webkit-box;
@@ -590,15 +598,15 @@ export class BarcodeEngine {
           }
           .sticker-barcode-svg {
             width: 100%;
-            height: ${heightMm <= 30 ? '16px' : '22px'};
+            height: ${heightMm <= 30 ? '16px' : '23px'};
             display: block;
             shape-rendering: crispEdges;
           }
           .barcode-text {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 7pt;
+            font-size: 7.5pt;
             font-weight: 900;
-            letter-spacing: 1px;
+            letter-spacing: 1.2px;
             color: #000000;
             margin-top: 0.3mm;
           }
@@ -606,23 +614,26 @@ export class BarcodeEngine {
             background: #000000 !important;
             color: #ffffff !important;
             border-radius: 3px;
-            padding: 1mm 2mm;
+            padding: 1.2mm 2mm;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             flex-wrap: nowrap !important;
             white-space: nowrap !important;
-            gap: 1.5mm;
+            width: 100%;
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           .code-val {
-            font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '9pt' : '11.5pt'};
+            font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '9pt' : '12.5pt'};
             font-weight: 900;
             font-family: 'Courier New', Courier, monospace;
-            letter-spacing: 1.5px;
+            letter-spacing: 3px;
             color: #ffffff !important;
             line-height: 1;
+            text-align: center;
             white-space: nowrap !important;
-            flex-shrink: 0 !important;
             display: inline-block !important;
           }
           .mrp-val {
@@ -631,16 +642,6 @@ export class BarcodeEngine {
             font-family: monospace;
             color: #38bdf8 !important;
             white-space: nowrap !important;
-          }
-          .scan-tag {
-            font-size: 5.5pt;
-            font-weight: 900;
-            text-transform: uppercase;
-            color: #34d399 !important;
-            text-align: right;
-            line-height: 1.1;
-            white-space: nowrap !important;
-            flex-shrink: 0 !important;
           }
         </style>
       </head>
