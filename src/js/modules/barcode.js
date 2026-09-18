@@ -181,16 +181,16 @@ export class BarcodeEngine {
           </div>
         </div>
 
-        <!-- 3RD: DUAL CIPHER PRICING (SEGMENTED 2-COLUMN CARD • NEVER WRAPS) -->
-        <div style="background:#ffffff; border:1.6px solid #000000; border-radius:5px; padding:3px 4px; margin-top:3px; display:flex; align-items:center; justify-content:space-between; width:100%; box-sizing:border-box;">
-          <div style="flex:1; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden;">
-            <div style="font-size:8px; font-weight:900; color:#475569; text-transform:uppercase; letter-spacing:0.5px; line-height:1; margin-bottom:2px; white-space:nowrap !important;">COST CODE</div>
-            <div style="font-family:monospace; font-size:12.5px; font-weight:900; letter-spacing:1.5px; color:#000000; line-height:1; white-space:nowrap !important; display:inline-block;">[ ${cipherCost} ]</div>
+        <!-- 3RD: DUAL PRICING 2-ROW CARD (FULL-WIDTH, SPACIOUS, ZERO OVERFLOW) -->
+        <div style="background:#ffffff; border:1.8px solid #000000; border-radius:5px; width:100%; box-sizing:border-box; overflow:hidden; margin-top:3px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 9px;">
+            <span style="font-size:9px; font-weight:900; color:#334155; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">${isDynamic ? 'SELL PRICE' : 'RETAIL MRP'}</span>
+            <span style="font-family:monospace; font-size:13.5px; font-weight:900; letter-spacing:2px; color:#000000; line-height:1; white-space:nowrap;">${isDynamic ? `[ ${cipherSell} ]` : priceStr}</span>
           </div>
-          <div style="width:1.5px; height:20px; background:#000000; flex-shrink:0; margin:0 3px;"></div>
-          <div style="flex:1; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden;">
-            <div style="font-size:8px; font-weight:900; color:#475569; text-transform:uppercase; letter-spacing:0.5px; line-height:1; margin-bottom:2px; white-space:nowrap !important;">${isDynamic ? 'SELL CODE' : 'RETAIL MRP'}</div>
-            <div style="font-family:monospace; font-size:12.5px; font-weight:900; letter-spacing:1.5px; color:#000000; line-height:1; white-space:nowrap !important; display:inline-block;">${isDynamic ? `[ ${cipherSell} ]` : priceStr}</div>
+          <div style="height:1.2px; background:#000000; width:100%;"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 9px;">
+            <span style="font-size:9px; font-weight:900; color:#334155; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">COST PRICE</span>
+            <span style="font-family:monospace; font-size:13.5px; font-weight:900; letter-spacing:2px; color:#000000; line-height:1; white-space:nowrap;">[ ${cipherCost} ]</span>
           </div>
         </div>
 
@@ -250,16 +250,16 @@ export class BarcodeEngine {
           <div class="barcode-text">* ${barcodeNumber} *</div>
         </div>
 
-        <!-- 4TH: DUAL CIPHER PRICING (SEGMENTED 2-COLUMN CARD • NEVER WRAPS) -->
-        <div class="sticker-pricing-grid">
-          <div class="pricing-cell">
-            <div class="pricing-label">COST CODE</div>
-            <div class="pricing-code">[ ${cipherCost} ]</div>
+        <!-- 4TH: DUAL PRICING 2-ROW CARD (FULL-WIDTH, SPACIOUS, ZERO OVERFLOW) -->
+        <div class="sticker-pricing-card">
+          <div class="pricing-row">
+            <span class="pricing-label">${isDynamic ? 'SELL PRICE' : 'RETAIL MRP'}</span>
+            <span class="pricing-code">${isDynamic ? `[ ${cipherSell} ]` : priceStr}</span>
           </div>
-          <div class="pricing-divider"></div>
-          <div class="pricing-cell">
-            <div class="pricing-label">${isDynamic ? 'SELL CODE' : 'RETAIL MRP'}</div>
-            <div class="pricing-code">${isDynamic ? `[ ${cipherSell} ]` : priceStr}</div>
+          <div class="pricing-row-divider"></div>
+          <div class="pricing-row">
+            <span class="pricing-label">COST PRICE</span>
+            <span class="pricing-code">[ ${cipherCost} ]</span>
           </div>
         </div>
       </div>
@@ -439,6 +439,7 @@ export class BarcodeEngine {
             margin: 0 !important;
             padding: 0 !important;
             width: 100%;
+            height: 100%;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -474,16 +475,17 @@ export class BarcodeEngine {
                 margin: 0;
                 padding: 0;
                 width: 100%;
+                height: 100%;
               }
               .sticker-card {
-                width: calc(100% - 1mm);
-                height: calc(100% - 1.2mm);
-                max-width: ${widthMm}mm;
-                max-height: ${heightMm - 1.2}mm;
+                width: ${widthMm - 1.2}mm;
+                height: ${heightMm - 1.4}mm;
+                max-width: ${widthMm - 1.2}mm;
+                max-height: ${heightMm - 1.4}mm;
                 margin: 0.6mm auto;
                 border: 1.6px solid #000000;
                 border-radius: 4px;
-                padding: 1.2mm 2.2mm;
+                padding: 1.4mm 2.2mm;
                 background: #ffffff !important;
                 box-sizing: border-box;
                 display: flex;
@@ -599,55 +601,43 @@ export class BarcodeEngine {
             color: #000000;
             margin-top: 0.2mm;
           }
-          .sticker-pricing-grid {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+          .sticker-pricing-card {
             background: #ffffff !important;
             border: 1.4px solid #000000;
             border-radius: 3px;
-            padding: 0.6mm 1mm;
             width: 100%;
             box-sizing: border-box;
+            overflow: hidden;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          .pricing-cell {
-            flex: 1;
-            text-align: center;
+          .pricing-row {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            overflow: hidden;
+            padding: 0.8mm 2.2mm;
           }
           .pricing-label {
-            font-size: 5.5pt;
+            font-size: 6.2pt;
             font-weight: 900;
-            color: #475569;
+            color: #334155;
             text-transform: uppercase;
             letter-spacing: 0.4px;
-            line-height: 1;
-            margin-bottom: 0.3mm;
             white-space: nowrap !important;
           }
           .pricing-code {
             font-family: 'Courier New', Courier, monospace;
-            font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '8pt' : '10.5pt'};
+            font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '8.5pt' : '11pt'};
             font-weight: 900;
-            letter-spacing: 1.5px;
+            letter-spacing: 1.8px;
             color: #000000 !important;
             line-height: 1;
             white-space: nowrap !important;
-            text-align: center;
-            display: inline-block !important;
           }
-          .pricing-divider {
-            width: 1.3px;
-            height: 5.5mm;
+          .pricing-row-divider {
+            height: 1.2px;
             background: #000000;
-            flex-shrink: 0;
-            margin: 0 1mm;
+            width: 100%;
           }
         </style>
       </head>
