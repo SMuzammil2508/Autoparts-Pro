@@ -439,7 +439,6 @@ export class BarcodeEngine {
             margin: 0 !important;
             padding: 0 !important;
             width: 100%;
-            height: 100%;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -472,20 +471,19 @@ export class BarcodeEngine {
               }
             ` : `
               .stickers-wrapper {
-                margin: 0;
-                padding: 0;
+                margin: 0 !important;
+                padding: 0 !important;
                 width: 100%;
-                height: 100%;
               }
               .sticker-card {
-                width: ${widthMm - 1.2}mm;
-                height: ${heightMm - 1.4}mm;
-                max-width: ${widthMm - 1.2}mm;
-                max-height: ${heightMm - 1.4}mm;
-                margin: 0.6mm auto;
+                width: ${widthMm - 1.6}mm;
+                height: ${heightMm - 2.6}mm;
+                max-width: ${widthMm - 1.6}mm;
+                max-height: ${heightMm - 2.6}mm;
+                margin: 0.8mm auto 0 auto;
                 border: 1.6px solid #000000;
                 border-radius: 4px;
-                padding: 1.4mm 2.2mm;
+                padding: 1.2mm 2.2mm;
                 background: #ffffff !important;
                 box-sizing: border-box;
                 display: flex;
@@ -498,6 +496,10 @@ export class BarcodeEngine {
               .sticker-card:not(:last-child) {
                 page-break-after: always !important;
                 break-after: page !important;
+              }
+              .sticker-card:last-child {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
               }
             `
           }
