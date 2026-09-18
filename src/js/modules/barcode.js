@@ -181,33 +181,17 @@ export class BarcodeEngine {
           </div>
         </div>
 
-        <!-- 3RD: DUAL CIPHER PRICING (WHITE BACKGROUND, BLACK TEXT • ZERO THERMAL BURN) -->
-        <div style="background:#ffffff; color:#000000; border:1.8px solid #000000; border-radius:4px; padding:4px 8px; margin-top:2px; display:flex; justify-content:space-around; align-items:center;">
-          ${
-            isDynamic 
-              ? `
-                <div style="display:flex; align-items:center; gap:5px;">
-                  <span style="font-size:8.5px; font-weight:900; color:#475569; text-transform:uppercase; letter-spacing:0.4px;">COST:</span>
-                  <span style="font-size:13px; font-weight:900; font-family:monospace; letter-spacing:1.5px; color:#000000;">[ ${cipherCost} ]</span>
-                </div>
-                <div style="width:1.5px; height:15px; background:#000000;"></div>
-                <div style="display:flex; align-items:center; gap:5px;">
-                  <span style="font-size:8.5px; font-weight:900; color:#475569; text-transform:uppercase; letter-spacing:0.4px;">SELL:</span>
-                  <span style="font-size:13px; font-weight:900; font-family:monospace; letter-spacing:1.5px; color:#000000;">[ ${cipherSell} ]</span>
-                </div>
-              `
-              : `
-                <div style="display:flex; align-items:center; gap:5px;">
-                  <span style="font-size:8.5px; font-weight:900; color:#475569; text-transform:uppercase; letter-spacing:0.4px;">COST:</span>
-                  <span style="font-size:13px; font-weight:900; font-family:monospace; letter-spacing:1.5px; color:#000000;">[ ${cipherCost} ]</span>
-                </div>
-                <div style="width:1.5px; height:15px; background:#000000;"></div>
-                <div style="display:flex; align-items:center; gap:5px;">
-                  <span style="font-size:8.5px; font-weight:900; color:#475569; text-transform:uppercase; letter-spacing:0.4px;">MRP:</span>
-                  <span style="font-size:13px; font-weight:900; font-family:monospace; color:#000000;">${priceStr}</span>
-                </div>
-              `
-          }
+        <!-- 3RD: DUAL CIPHER PRICING (SEGMENTED 2-COLUMN CARD • NEVER WRAPS) -->
+        <div style="background:#ffffff; border:1.6px solid #000000; border-radius:5px; padding:3px 4px; margin-top:3px; display:flex; align-items:center; justify-content:space-between; width:100%; box-sizing:border-box;">
+          <div style="flex:1; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden;">
+            <div style="font-size:8px; font-weight:900; color:#475569; text-transform:uppercase; letter-spacing:0.5px; line-height:1; margin-bottom:2px; white-space:nowrap !important;">COST CODE</div>
+            <div style="font-family:monospace; font-size:12.5px; font-weight:900; letter-spacing:1.5px; color:#000000; line-height:1; white-space:nowrap !important; display:inline-block;">[ ${cipherCost} ]</div>
+          </div>
+          <div style="width:1.5px; height:20px; background:#000000; flex-shrink:0; margin:0 3px;"></div>
+          <div style="flex:1; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden;">
+            <div style="font-size:8px; font-weight:900; color:#475569; text-transform:uppercase; letter-spacing:0.5px; line-height:1; margin-bottom:2px; white-space:nowrap !important;">${isDynamic ? 'SELL CODE' : 'RETAIL MRP'}</div>
+            <div style="font-family:monospace; font-size:12.5px; font-weight:900; letter-spacing:1.5px; color:#000000; line-height:1; white-space:nowrap !important; display:inline-block;">${isDynamic ? `[ ${cipherSell} ]` : priceStr}</div>
+          </div>
         </div>
 
       </div>
@@ -266,33 +250,17 @@ export class BarcodeEngine {
           <div class="barcode-text">* ${barcodeNumber} *</div>
         </div>
 
-        <!-- 4TH: DUAL CIPHER PRICING (WHITE BACKGROUND, BLACK TEXT • ZERO THERMAL BURN) -->
-        <div class="sticker-code-banner">
-          ${
-            isDynamic 
-              ? `
-                <div class="code-col">
-                  <span class="code-prefix">COST:</span>
-                  <span class="code-val">[ ${cipherCost} ]</span>
-                </div>
-                <div class="code-sep"></div>
-                <div class="code-col">
-                  <span class="code-prefix">SELL:</span>
-                  <span class="code-val">[ ${cipherSell} ]</span>
-                </div>
-              `
-              : `
-                <div class="code-col">
-                  <span class="code-prefix">COST:</span>
-                  <span class="code-val">[ ${cipherCost} ]</span>
-                </div>
-                <div class="code-sep"></div>
-                <div class="code-col">
-                  <span class="code-prefix">MRP:</span>
-                  <span class="mrp-val">${priceStr}</span>
-                </div>
-              `
-          }
+        <!-- 4TH: DUAL CIPHER PRICING (SEGMENTED 2-COLUMN CARD • NEVER WRAPS) -->
+        <div class="sticker-pricing-grid">
+          <div class="pricing-cell">
+            <div class="pricing-label">COST CODE</div>
+            <div class="pricing-code">[ ${cipherCost} ]</div>
+          </div>
+          <div class="pricing-divider"></div>
+          <div class="pricing-cell">
+            <div class="pricing-label">${isDynamic ? 'SELL CODE' : 'RETAIL MRP'}</div>
+            <div class="pricing-code">${isDynamic ? `[ ${cipherSell} ]` : priceStr}</div>
+          </div>
         </div>
       </div>
     `;
@@ -631,58 +599,55 @@ export class BarcodeEngine {
             color: #000000;
             margin-top: 0.2mm;
           }
-          .sticker-code-banner {
+          .sticker-pricing-grid {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             background: #ffffff !important;
-            color: #000000 !important;
             border: 1.4px solid #000000;
             border-radius: 3px;
-            padding: 0.8mm 1.5mm;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            flex-wrap: nowrap !important;
-            white-space: nowrap !important;
+            padding: 0.6mm 1mm;
             width: 100%;
             box-sizing: border-box;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          .code-col {
+          .pricing-cell {
+            flex: 1;
+            text-align: center;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 1.2mm;
+            justify-content: center;
+            overflow: hidden;
+          }
+          .pricing-label {
+            font-size: 5.5pt;
+            font-weight: 900;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            line-height: 1;
+            margin-bottom: 0.3mm;
             white-space: nowrap !important;
           }
-          .code-prefix {
-            font-size: 6.2pt;
-            font-weight: 900;
-            color: #334155;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-          }
-          .code-val {
+          .pricing-code {
+            font-family: 'Courier New', Courier, monospace;
             font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '8pt' : '10.5pt'};
             font-weight: 900;
-            font-family: 'Courier New', Courier, monospace;
-            letter-spacing: 1.6px;
+            letter-spacing: 1.5px;
             color: #000000 !important;
             line-height: 1;
-            text-align: center;
             white-space: nowrap !important;
+            text-align: center;
             display: inline-block !important;
           }
-          .code-sep {
-            width: 1.2px;
-            height: 3.5mm;
+          .pricing-divider {
+            width: 1.3px;
+            height: 5.5mm;
             background: #000000;
+            flex-shrink: 0;
             margin: 0 1mm;
-          }
-          .mrp-val {
-            font-size: 10pt;
-            font-weight: 900;
-            font-family: monospace;
-            color: #000000 !important;
-            white-space: nowrap !important;
           }
         </style>
       </head>
