@@ -1771,13 +1771,22 @@
           <div>
             <label class="block text-xs font-bold text-slate-300 mb-1">Label Paper Size</label>
             <select id="print-label-size" class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold focus:border-blue-500 focus:outline-none">
-              <option value="50x35" selected>Standard Thermal (50mm x 35mm / 2" x 1.4")</option>
+              <option value="75x50" selected>📦 3" x 2" Standard Thermal (76.2mm x 50.8mm • Zero-Waste)</option>
+              <option value="50x35">Standard Thermal (50mm x 35mm / 2" x 1.4")</option>
               <option value="50x25">Compact Thermal (50mm x 25mm / 2" x 1")</option>
               <option value="38x25">Mini Shelf Tag (38mm x 25mm / 1.5" x 1")</option>
-              <option value="75x50">Large Box Sticker (75mm x 50mm / 3" x 2")</option>
               <option value="100x50">Giant Master Label (100mm x 50mm / 4" x 2")</option>
               <option value="custom">📐 Custom Size (Set Exact mm Width x Height)</option>
               <option value="a4-sheet">A4 Multi-Label Sticker Sheet</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Border & Margin Fit</label>
+            <select id="print-label-margin" class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold focus:border-blue-500 focus:outline-none">
+              <option value="1.0" selected>Balanced Safe Margin (1mm Edge • Zero Waste)</option>
+              <option value="0.0">Edge-to-Edge Full Bleed (0mm Margin)</option>
+              <option value="2.0">Comfortable Inset (2mm Border Margin)</option>
             </select>
           </div>
 
@@ -1785,12 +1794,12 @@
           <div id="custom-label-dimensions-box" class="hidden items-center gap-2 p-2 rounded-lg bg-slate-950 border border-purple-500/50">
             <div class="flex items-center gap-1">
               <label class="text-[11px] font-bold text-purple-300">W (mm):</label>
-              <input type="number" id="custom-sticker-width" value="50" min="20" max="150" class="w-14 p-1 text-center font-bold rounded bg-slate-900 border border-slate-700 text-purple-200 text-xs" />
+              <input type="number" id="custom-sticker-width" value="76.2" step="0.1" min="20" max="150" class="w-14 p-1 text-center font-bold rounded bg-slate-900 border border-slate-700 text-purple-200 text-xs" />
             </div>
             <span class="text-slate-500 font-bold">x</span>
             <div class="flex items-center gap-1">
               <label class="text-[11px] font-bold text-purple-300">H (mm):</label>
-              <input type="number" id="custom-sticker-height" value="35" min="15" max="150" class="w-14 p-1 text-center font-bold rounded bg-slate-900 border border-slate-700 text-purple-200 text-xs" />
+              <input type="number" id="custom-sticker-height" value="50.8" step="0.1" min="15" max="150" class="w-14 p-1 text-center font-bold rounded bg-slate-900 border border-slate-700 text-purple-200 text-xs" />
             </div>
           </div>
 
@@ -1801,6 +1810,14 @@
               <option value="none">🚫 None (Completely Clean Header)</option>
               <option value="full">🏢 Full Store Name Header</option>
             </select>
+          </div>
+        </div>
+
+        <!-- 3x2 PERFECT FIT GUIDANCE BANNER -->
+        <div class="p-2.5 rounded-xl bg-blue-950/40 border border-blue-600/30 text-xs text-blue-300 flex items-center justify-between no-print">
+          <div class="flex items-center gap-2">
+            <i data-lucide="printer" class="w-4 h-4 text-blue-400 shrink-0"></i>
+            <span><b>3" x 2" Label Print Tip:</b> In your browser's print window, ensure <b>Paper Size</b> is <b>3" x 2" (or 76.2x50.8mm)</b> and <b>Margins</b> is set to <b>None</b> for exact edge-to-edge printing with zero excess white space.</span>
           </div>
         </div>
 
@@ -1877,13 +1894,22 @@
           <div>
             <label class="block text-xs font-bold text-slate-300 mb-1">Label Paper Size</label>
             <select id="batch-label-size" class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold focus:border-blue-500 focus:outline-none">
-              <option value="50x35" selected>Standard Thermal (50mm x 35mm / 2" x 1.4")</option>
+              <option value="75x50" selected>📦 3" x 2" Standard Thermal (76.2mm x 50.8mm • Zero-Waste)</option>
+              <option value="50x35">Standard Thermal (50mm x 35mm / 2" x 1.4")</option>
               <option value="50x25">Compact Thermal (50mm x 25mm / 2" x 1")</option>
               <option value="38x25">Mini Shelf Tag (38mm x 25mm / 1.5" x 1")</option>
-              <option value="75x50">Large Box Sticker (75mm x 50mm / 3" x 2")</option>
               <option value="100x50">Giant Master Label (100mm x 50mm / 4" x 2")</option>
               <option value="custom">📐 Custom Size (Set Exact mm Width x Height)</option>
               <option value="a4-sheet">A4 Multi-Label Sticker Sheet</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Border & Margin Fit</label>
+            <select id="batch-label-margin" class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold focus:border-blue-500 focus:outline-none">
+              <option value="1.0" selected>Balanced Safe Margin (1mm Edge • Zero Waste)</option>
+              <option value="0.0">Edge-to-Edge Full Bleed (0mm Margin)</option>
+              <option value="2.0">Comfortable Inset (2mm Border Margin)</option>
             </select>
           </div>
 
@@ -1891,12 +1917,12 @@
           <div id="custom-batch-label-dimensions-box" class="hidden items-center gap-2 p-2 rounded-lg bg-slate-950 border border-purple-500/50">
             <div class="flex items-center gap-1">
               <label class="text-[11px] font-bold text-purple-300">W (mm):</label>
-              <input type="number" id="custom-batch-sticker-width" value="50" min="20" max="150" class="w-14 p-1 text-center font-bold rounded bg-slate-900 border border-slate-700 text-purple-200 text-xs" />
+              <input type="number" id="custom-batch-sticker-width" value="76.2" step="0.1" min="20" max="150" class="w-14 p-1 text-center font-bold rounded bg-slate-900 border border-slate-700 text-purple-200 text-xs" />
             </div>
             <span class="text-slate-500 font-bold">x</span>
             <div class="flex items-center gap-1">
               <label class="text-[11px] font-bold text-purple-300">H (mm):</label>
-              <input type="number" id="custom-batch-sticker-height" value="35" min="15" max="150" class="w-14 p-1 text-center font-bold rounded bg-slate-900 border border-slate-700 text-purple-200 text-xs" />
+              <input type="number" id="custom-batch-sticker-height" value="50.8" step="0.1" min="15" max="150" class="w-14 p-1 text-center font-bold rounded bg-slate-900 border border-slate-700 text-purple-200 text-xs" />
             </div>
           </div>
 
@@ -1920,6 +1946,14 @@
             </div>
           </div>
 
+        </div>
+
+        <!-- 3x2 PERFECT FIT GUIDANCE BANNER -->
+        <div class="p-2.5 rounded-xl bg-blue-950/40 border border-blue-600/30 text-xs text-blue-300 flex items-center justify-between no-print">
+          <div class="flex items-center gap-2">
+            <i data-lucide="printer" class="w-4 h-4 text-blue-400 shrink-0"></i>
+            <span><b>3" x 2" Label Print Tip:</b> In your browser's print window, ensure <b>Paper Size</b> is <b>3" x 2" (or 76.2x50.8mm)</b> and <b>Margins</b> is set to <b>None</b> for exact edge-to-edge printing with zero excess white space.</span>
+          </div>
         </div>
 
         <!-- FAST SEARCH & ADD MORE PARTS INSIDE MODAL -->

@@ -104,12 +104,39 @@ export const DEFAULT_SETTINGS = {
   theme: "midnight"
 };
 
-// Initialize Supabase Client
+export const isLocalEnvironment = () => {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname || '';
+  const protocol = window.location.protocol || '';
+  return (
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '0.0.0.0' ||
+    host.startsWith('192.168.') ||
+    host.startsWith('10.') ||
+    host.startsWith('172.16.') ||
+    host.endsWith('.local') ||
+    host === '' ||
+    protocol === 'file:'
+  );
+};
+
+export const isCloudSyncEnabled = () => {
+  if (isLocalEnvironment()) {
+    // Isolated local testing: do not touch deployed production Supabase database
+    return localStorage.getItem('autoparts_force_cloud_sync') === 'true';
+  }
+  return true;
+};
+
+// Initialize Supabase Client (Only enabled in production or if explicitly forced)
 let supabaseClient = null;
 try {
-  if (window.supabase && window.supabase.createClient) {
+  if (isCloudSyncEnabled() && window.supabase && window.supabase.createClient) {
     supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
     console.log("⚡ Supabase PostgreSQL Client connected successfully to DecentMotors_Inventory!");
+  } else if (!isCloudSyncEnabled()) {
+    console.log("🧪 Running in Local Test Mode: Supabase Cloud Sync is disabled to protect deployed production data.");
   }
 } catch (err) {
   console.warn("Supabase client init warning:", err);
@@ -117,6 +144,9 @@ try {
 
 export class StorageManager {
   static getClient() {
+    if (!isCloudSyncEnabled()) {
+      return null;
+    }
     if (!supabaseClient && window.supabase && window.supabase.createClient) {
       supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
     }
@@ -141,14 +171,24 @@ export class StorageManager {
       cached = isClean ? [] : INITIAL_PARTS_DATA;
     }
 
-    // 2. ALWAYS trigger async cloud synchronization in background!
-    this.syncProductsFromCloud();
+    // 2. ALWAYS trigger async cloud synchronization in background if cloud sync is enabled!
+    if (isCloudSyncEnabled()) {
+      this.syncProductsFromCloud();
+    } else {
+      this.updateSyncBadge(false);
+    }
     return cached;
   }
 
   static async initCloudSync(appContext) {
     this.app = appContext;
     
+    if (!isCloudSyncEnabled()) {
+      console.log("🧪 [Local Test Mode] Cloud sync & WebSockets are disabled. All changes are stored locally in this browser.");
+      this.updateSyncBadge(false);
+      return;
+    }
+
     // Initial fetch from cloud for all modules
     await this.syncProductsFromCloud();
     await this.syncOutflowsFromCloud();
@@ -178,15 +218,37 @@ export class StorageManager {
     const dot = document.getElementById('cloud-sync-status-dot');
     if (!badge) return;
 
+    if (!isCloudSyncEnabled()) {
+      badge.classList.remove('hidden');
+      badge.classList.add('flex');
+      if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 shrink-0";
+      if (label) {
+        label.textContent = "🧪 Local Test Mode";
+        label.className = "inline text-xs font-bold text-amber-300";
+      }
+      badge.className = "btn-touch flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-amber-950/70 border border-amber-500/50 text-amber-300 shadow-sm cursor-default";
+      badge.title = "Running in Local Test Mode: changes are saved only in your local browser and will NOT affect the deployed production store.";
+      return;
+    }
+
     if (isLive) {
       badge.classList.remove('hidden');
       badge.classList.add('flex');
       if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0";
-      if (label) label.textContent = labelText;
+      if (label) {
+        label.textContent = labelText;
+        label.className = "hidden 2xl:inline";
+      }
       badge.className = "btn-touch flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 shadow-sm";
+      badge.title = "Connected to Supabase PostgreSQL Database. Changes sync live across all devices in real-time.";
     } else {
+      badge.classList.remove('hidden');
+      badge.classList.add('flex');
       if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 shrink-0";
-      if (label) label.textContent = labelText || "Offline Cache";
+      if (label) {
+        label.textContent = labelText || "Offline Cache";
+        label.className = "hidden 2xl:inline";
+      }
       badge.className = "btn-touch flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-amber-950/70 border border-amber-500/50 text-amber-300 shadow-sm";
     }
   }
@@ -222,6 +284,10 @@ export class StorageManager {
   }
 
   static async syncProductsFromCloud() {
+    if (!isCloudSyncEnabled()) {
+      this.updateSyncBadge(false);
+      return;
+    }
     const client = this.getClient();
     if (!client || !navigator.onLine) {
       this.updateSyncBadge(false, "Offline Cache");

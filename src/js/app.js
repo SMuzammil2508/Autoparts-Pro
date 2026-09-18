@@ -1631,7 +1631,9 @@ class AutoPartsApp {
       });
     }
 
-    [qtyInput, labelSizeSelect, labelStyleSelect, headerStyleSelect, customWidthInput, customHeightInput].forEach(el => {
+    const labelMarginSelect = document.getElementById('print-label-margin');
+
+    [qtyInput, labelSizeSelect, labelMarginSelect, labelStyleSelect, headerStyleSelect, customWidthInput, customHeightInput].forEach(el => {
       if (el) {
         el.addEventListener('input', () => {
           if (this.printingPart) this.barcodeEngine.renderStickersPreview(this.printingPart);
@@ -1713,12 +1715,13 @@ class AutoPartsApp {
     });
 
     const batchSizeSelect = document.getElementById('batch-label-size');
+    const batchMarginSelect = document.getElementById('batch-label-margin');
     const batchStyleSelect = document.getElementById('batch-print-style');
     const batchHeaderStyleSelect = document.getElementById('batch-print-header-style');
     const customBatchWidthInput = document.getElementById('custom-batch-sticker-width');
     const customBatchHeightInput = document.getElementById('custom-batch-sticker-height');
 
-    [batchSizeSelect, batchStyleSelect, batchHeaderStyleSelect, customBatchWidthInput, customBatchHeightInput].forEach(el => {
+    [batchSizeSelect, batchMarginSelect, batchStyleSelect, batchHeaderStyleSelect, customBatchWidthInput, customBatchHeightInput].forEach(el => {
       if (el) {
         el.addEventListener('input', () => this.renderBatchStickersPreview());
         el.addEventListener('change', () => this.renderBatchStickersPreview());
