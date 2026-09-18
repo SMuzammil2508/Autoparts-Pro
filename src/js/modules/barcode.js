@@ -27,6 +27,37 @@ export class BarcodeEngine {
     return letters.join(' - ');
   }
 
+  // Helper: Computes auto-scaling typography for Car Fitment so every vehicle name appears
+  getFitmentStyle(modelsStr, isPrint = false) {
+    const len = (modelsStr || '').trim().length;
+    if (isPrint) {
+      if (len <= 26) {
+        return { fontSize: '9.5pt', lineHeight: '1.15', maxLines: 2 };
+      } else if (len <= 52) {
+        return { fontSize: '8pt', lineHeight: '1.12', maxLines: 2 };
+      } else if (len <= 85) {
+        return { fontSize: '6.8pt', lineHeight: '1.08', maxLines: 3 };
+      } else if (len <= 130) {
+        return { fontSize: '5.8pt', lineHeight: '1.05', maxLines: 3 };
+      } else {
+        return { fontSize: '5.2pt', lineHeight: '1.03', maxLines: 4 };
+      }
+    } else {
+      // Screen UI preview (px)
+      if (len <= 26) {
+        return { fontSize: '12px', lineHeight: '1.15', maxLines: 2 };
+      } else if (len <= 52) {
+        return { fontSize: '10.5px', lineHeight: '1.12', maxLines: 2 };
+      } else if (len <= 85) {
+        return { fontSize: '9px', lineHeight: '1.08', maxLines: 3 };
+      } else if (len <= 130) {
+        return { fontSize: '7.8px', lineHeight: '1.05', maxLines: 3 };
+      } else {
+        return { fontSize: '7px', lineHeight: '1.03', maxLines: 4 };
+      }
+    }
+  }
+
   // Code 39 Vector Barcode Generator
   generateBarcodeSVG(text) {
     const code39Patterns = {
@@ -135,6 +166,7 @@ export class BarcodeEngine {
     const priceStr = `₹ ${(part.sellingPrice || 0).toLocaleString('en-IN')}`;
     const cipherCost = this.encodeCostToCipher(part.costPrice);
     const cipherSell = this.encodeCostToCipher(part.sellingPrice);
+    const fitStyle = this.getFitmentStyle(modelsStr, false);
 
     return `
       <div class="product-box-sticker" style="background:#ffffff; color:#000000; border:2px solid #000000; padding:10px 14px; border-radius:6px; width:${previewWidthPx}px; height:${previewHeightPx}px; display:flex; flex-direction:column; justify-content:space-between; margin:4px; box-shadow:0 4px 14px rgba(0,0,0,0.35); box-sizing:border-box; overflow:hidden;">
@@ -165,10 +197,10 @@ export class BarcodeEngine {
           ${part.name || 'Auto Spare Part'}
         </div>
 
-        <!-- 2ND: CAR FITMENT / APPLICATION (BELOW PART NAME) -->
-        <div style="background:#f8fafc; border:1.5px solid #000000; border-radius:4px; padding:3px 7px; margin-bottom:2px;">
+        <!-- 2ND: CAR FITMENT / APPLICATION (BELOW PART NAME • AUTO-SCALING FONT) -->
+        <div style="background:#f8fafc; border:1.5px solid #000000; border-radius:4px; padding:3px 6px; margin-bottom:2px;">
           <div style="font-size:7.5px; font-weight:900; text-transform:uppercase; color:#475569; letter-spacing:0.4px;">🚗 CAR FITMENT / APPLICATION:</div>
-          <div style="font-size:11.5px; font-weight:900; color:#000000; line-height:1.15; text-transform:uppercase; max-height:2.3em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
+          <div style="font-size:${fitStyle.fontSize}; font-weight:900; color:#000000; line-height:${fitStyle.lineHeight}; text-transform:uppercase; max-height:${(fitStyle.maxLines * 1.3).toFixed(1)}em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${fitStyle.maxLines}; -webkit-box-orient:vertical; word-break:break-word;">
             ${modelsStr}
           </div>
         </div>
@@ -217,6 +249,7 @@ export class BarcodeEngine {
     const priceStr = `₹ ${(part.sellingPrice || 0).toLocaleString('en-IN')}`;
     const cipherCost = this.encodeCostToCipher(part.costPrice);
     const cipherSell = this.encodeCostToCipher(part.sellingPrice);
+    const fitStyle = this.getFitmentStyle(modelsStr, true);
 
     return `
       <div class="sticker-card">
@@ -238,10 +271,10 @@ export class BarcodeEngine {
         <!-- 1ST: PART NAME (PROMINENT & LARGE FOR DISTANCE VISIBILITY) -->
         <div class="part-title">${part.name || 'Auto Spare Part'}</div>
 
-        <!-- 2ND: CAR FITMENT / APPLICATION (BELOW PART NAME) -->
+        <!-- 2ND: CAR FITMENT / APPLICATION (BELOW PART NAME • AUTO-SCALING FONT) -->
         <div class="vehicle-fitment-box">
           <div class="fitment-label">🚗 CAR FITMENT / APPLICATION:</div>
-          <div class="fitment-cars">${modelsStr}</div>
+          <div class="fitment-cars" style="font-size:${fitStyle.fontSize} !important; line-height:${fitStyle.lineHeight} !important; -webkit-line-clamp:${fitStyle.maxLines} !important; max-height:${(fitStyle.maxLines * 1.3).toFixed(1)}em !important;">${modelsStr}</div>
         </div>
 
         <!-- 3RD: 1D BARCODE -->
@@ -559,16 +592,13 @@ export class BarcodeEngine {
             letter-spacing: 0.3px;
           }
           .fitment-cars {
-            font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '7.5pt' : '9.5pt'};
             font-weight: 900;
             color: #000000;
-            line-height: 1.15;
             text-transform: uppercase;
-            max-height: 2.2em;
             overflow: hidden;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
+            word-break: break-word;
           }
           .part-title {
             font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '8pt' : '11pt'};
