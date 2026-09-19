@@ -10,11 +10,12 @@ export class BarcodeEngine {
     this.settings = { ...this.settings, ...newSettings };
   }
 
-  // Encodes Cost Price into secret 10-letter keyword (Default: SANYO DELHI -> 1234567890)
-  encodeCostToCipher(costPrice, customCipher = null) {
+  // Encodes Cost / Sell Price into secret 10-letter keyword (Default: SANYO DELHI -> 1234567890)
+  // + Appends 1 random decoy/salt letter from non-cipher letters (e.g. B, R, P, Z, M, etc.) at the end
+  encodeCostToCipher(price, customCipher = null, addDecoy = true) {
     const rawKey = (customCipher || this.settings.cipherKeyword || "SANYODELHI").toUpperCase().replace(/[^A-Z]/g, '');
     const cipher = (rawKey + "SANYODELHI").slice(0, 10);
-    const numStr = String(Math.round(costPrice || 0));
+    const numStr = String(Math.round(price || 0));
     const letters = [];
     for (let char of numStr) {
       const digit = parseInt(char, 10);
@@ -24,6 +25,17 @@ export class BarcodeEngine {
         letters.push(cipher[9]); // 0 maps to 10th letter (I in SANYODELHI)
       }
     }
+
+    if (addDecoy) {
+      // Pick a random letter that is NOT part of the cipher keyword (e.g. B, C, F, G, J, K, M, P, Q, R, T, U, V, W, X, Z)
+      const cipherLetters = new Set(cipher.split(''));
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
+      const nonCipherLetters = alphabet.filter(l => !cipherLetters.has(l));
+      const pool = nonCipherLetters.length > 0 ? nonCipherLetters : alphabet;
+      const randomDecoy = pool[Math.floor(Math.random() * pool.length)];
+      letters.push(randomDecoy);
+    }
+
     return letters.join(' - ');
   }
 

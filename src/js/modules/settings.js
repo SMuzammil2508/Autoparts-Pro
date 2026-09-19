@@ -113,7 +113,7 @@ export class SettingsManager {
     const letters = key.split('');
     // 1 to 9, then 0
     const mapStr = letters.map((letter, i) => `${letter}=${i === 9 ? 0 : i + 1}`).join(', ');
-    previewEl.textContent = `${mapStr} (e.g. ₹1,450 = ${letters[0]}-${letters[3]}-${letters[4]}-${letters[9]})`;
+    previewEl.textContent = `${mapStr} (e.g. ₹1,200 = ${letters[0]}-${letters[1]}-${letters[9]}-${letters[9]}-R • with 1 random decoy letter at end)`;
   }
 
   exportDataBackup() {
