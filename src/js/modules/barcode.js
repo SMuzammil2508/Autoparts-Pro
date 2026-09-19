@@ -190,14 +190,14 @@ export class BarcodeEngine {
               <div style="font-size:10px; font-weight:900; text-transform:uppercase; color:#000000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                 ${part.brand || 'OEM'} &bull; ${part.partNumber || barcodeNumber}
               </div>
-              <div style="font-size:9px; font-weight:900; background:#000000; color:#ffffff; padding:2px 8px; border-radius:4px; white-space:nowrap;">
+              <div style="font-size:9px; font-weight:900; background:#ffffff; color:#000000; border:1.2px solid #000000; padding:1.5px 7px; border-radius:3px; white-space:nowrap;">
                 📍 ${part.rackLocation || 'RACK'}
               </div>
             </div>
           ` : `
             <div style="border-bottom:1.5px solid #000000; padding-bottom:3px; margin-bottom:3px; display:flex; justify-content:space-between; align-items:center;">
               <div style="font-size:10.5px; font-weight:900; text-transform:uppercase; letter-spacing:0.3px; color:#000000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${storeName}</div>
-              <div style="font-size:9px; font-weight:900; background:#000000; color:#ffffff; padding:2px 8px; border-radius:4px; white-space:nowrap;">
+              <div style="font-size:9px; font-weight:900; background:#ffffff; color:#000000; border:1.2px solid #000000; padding:1.5px 7px; border-radius:3px; white-space:nowrap;">
                 📍 ${part.rackLocation || 'RACK'}
               </div>
             </div>
@@ -565,9 +565,10 @@ export class BarcodeEngine {
           .rack-badge {
             font-size: 6.8pt;
             font-weight: 900;
-            background: #000000 !important;
-            color: #ffffff !important;
-            padding: 1.2px 6px;
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: 1.2px solid #000000;
+            padding: 0.8px 5px;
             border-radius: 3px;
             white-space: nowrap;
             display: inline-block;
