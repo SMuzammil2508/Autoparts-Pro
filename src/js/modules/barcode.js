@@ -225,16 +225,14 @@ export class BarcodeEngine {
           </div>
         </div>
 
-        <!-- 3RD: DUAL PRICING 2-ROW CARD (FULL-WIDTH, SPACIOUS, ZERO OVERFLOW) -->
+        <!-- 3RD: DUAL CIPHER CODE CARD (TOP: SELLING, BOTTOM: COSTING • CLEAN & CRYPTIC) -->
         <div style="background:#ffffff; border:1.8px solid #000000; border-radius:5px; width:100%; box-sizing:border-box; overflow:hidden; margin-top:3px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 9px;">
-            <span style="font-size:9px; font-weight:900; color:#334155; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">${isDynamic ? 'SELL PRICE' : 'RETAIL MRP'}</span>
-            <span style="font-family:monospace; font-size:13.5px; font-weight:900; letter-spacing:2px; color:#000000; line-height:1; white-space:nowrap;">${isDynamic ? `[ ${cipherSell} ]` : priceStr}</span>
+          <div style="display:flex; justify-content:center; align-items:center; padding:3.5px 6px;">
+            <span style="font-family:monospace; font-size:14px; font-weight:900; letter-spacing:2.5px; color:#000000; line-height:1; white-space:nowrap;">${isDynamic ? `[ ${cipherSell} ]` : priceStr}</span>
           </div>
           <div style="height:1.2px; background:#000000; width:100%;"></div>
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 9px;">
-            <span style="font-size:9px; font-weight:900; color:#334155; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">COST PRICE</span>
-            <span style="font-family:monospace; font-size:13.5px; font-weight:900; letter-spacing:2px; color:#000000; line-height:1; white-space:nowrap;">[ ${cipherCost} ]</span>
+          <div style="display:flex; justify-content:center; align-items:center; padding:3.5px 6px;">
+            <span style="font-family:monospace; font-size:14px; font-weight:900; letter-spacing:2.5px; color:#000000; line-height:1; white-space:nowrap;">[ ${cipherCost} ]</span>
           </div>
         </div>
 
@@ -295,15 +293,13 @@ export class BarcodeEngine {
           <div class="barcode-text">* ${barcodeNumber} *</div>
         </div>
 
-        <!-- 4TH: DUAL PRICING 2-ROW CARD (FULL-WIDTH, SPACIOUS, ZERO OVERFLOW) -->
+        <!-- 4TH: DUAL CIPHER CODE CARD (TOP: SELLING, BOTTOM: COSTING • CLEAN & CRYPTIC) -->
         <div class="sticker-pricing-card">
           <div class="pricing-row">
-            <span class="pricing-label">${isDynamic ? 'SELL PRICE' : 'RETAIL MRP'}</span>
             <span class="pricing-code">${isDynamic ? `[ ${cipherSell} ]` : priceStr}</span>
           </div>
           <div class="pricing-row-divider"></div>
           <div class="pricing-row">
-            <span class="pricing-label">COST PRICE</span>
             <span class="pricing-code">[ ${cipherCost} ]</span>
           </div>
         </div>
@@ -657,26 +653,19 @@ export class BarcodeEngine {
           }
           .pricing-row {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            padding: 0.8mm 2.2mm;
-          }
-          .pricing-label {
-            font-size: 6.2pt;
-            font-weight: 900;
-            color: #334155;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            white-space: nowrap !important;
+            padding: 0.7mm 1mm;
           }
           .pricing-code {
             font-family: 'Courier New', Courier, monospace;
-            font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '8.5pt' : '11pt'};
+            font-size: ${sizeFormat === '38x25' || (sizeFormat === 'custom' && widthMm <= 40) ? '9pt' : '11.5pt'};
             font-weight: 900;
-            letter-spacing: 1.8px;
+            letter-spacing: 2px;
             color: #000000 !important;
             line-height: 1;
             white-space: nowrap !important;
+            text-align: center;
           }
           .pricing-row-divider {
             height: 1.2px;
