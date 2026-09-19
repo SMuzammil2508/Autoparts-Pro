@@ -303,7 +303,8 @@ export class InventoryManager {
       const minAlert = (part.minStockAlert !== undefined && part.minStockAlert !== null) ? Number(part.minStockAlert) : 1;
       const isOutOfStock = totalStock === 0;
       const isLowStock = totalStock > 0 && totalStock <= minAlert;
-      const hasGroundStash = groundStash > 0;
+      const isUpstairs = this.app.isUpstairsPart ? this.app.isUpstairsPart(part) : false;
+      const hasGroundStash = isUpstairs && groundStash > 0;
       const partDefectiveList = (this.app.defectiveReturns || []).filter(d => d.partId === part.id && d.status === 'pending_wholesaler');
       const hasPendingDefective = partDefectiveList.length > 0;
       const pendingDefectiveUnits = partDefectiveList.reduce((acc, d) => acc + (d.quantity || 1), 0);
@@ -439,15 +440,17 @@ export class InventoryManager {
 
             <!-- MULTI-FLOOR STORAGE LOCATIONS BREAKDOWN -->
             <div class="mt-3 grid grid-cols-3 gap-1.5 text-center">
-              <div class="p-2 rounded-xl ${groundStash > 0 ? 'bg-amber-950/50 border border-amber-500/50' : 'bg-slate-900/90 border border-slate-800'}">
+              <div class="p-2 rounded-xl ${hasGroundStash ? 'bg-amber-950/50 border border-amber-500/50' : 'bg-slate-900/90 border border-slate-800'}">
                 <div class="text-[10px] uppercase font-bold text-slate-400">Ground Floor</div>
-                <div class="text-base font-black font-mono ${groundStash > 0 ? 'text-amber-400' : 'text-slate-500'}">${groundStash}</div>
-                <div class="text-[9px] text-slate-500 truncate">Counter / Returns</div>
+                <div class="text-base font-black font-mono ${hasGroundStash ? 'text-amber-400' : (groundStash > 0 ? 'text-emerald-400' : 'text-slate-500')}">${groundStash}</div>
+                <div class="text-[9px] ${hasGroundStash ? 'text-amber-400/90 font-bold' : 'text-slate-500'} truncate">
+                  ${hasGroundStash ? 'Returned (Rack Up)' : (!isUpstairs ? (part.rackLocation || 'Designated Rack') : 'Counter')}
+                </div>
               </div>
               <div class="p-2 rounded-xl bg-slate-900/90 border border-slate-800">
                 <div class="text-[10px] uppercase font-bold text-slate-400">1st Floor</div>
                 <div class="text-base font-black font-mono ${floor1 > 0 ? 'text-emerald-400' : 'text-slate-500'}">${floor1}</div>
-                <div class="text-[9px] text-slate-400 truncate" title="${part.rackLocation || 'Rack A-01'}">${part.rackLocation || 'Rack A-01'}</div>
+                <div class="text-[9px] text-slate-400 truncate" title="${isUpstairs ? (part.rackLocation || 'Rack A-01') : 'Floor 1'}">${isUpstairs ? (part.rackLocation || 'Rack A-01') : 'Floor 1'}</div>
               </div>
               <div class="p-2 rounded-xl bg-slate-900/90 border border-slate-800">
                 <div class="text-[10px] uppercase font-bold text-slate-400">2nd Floor</div>

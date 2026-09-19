@@ -240,11 +240,57 @@ class AutoPartsApp {
     });
   }
 
+  // Check if a part is designated for Upstairs storage (Floor 1 / Floor 2) vs Ground Floor
+  isUpstairsPart(part) {
+    if (!part) return false;
+    const rack = (part.rackLocation || '').trim().toLowerCase();
+
+    // Explicit Ground Floor / Counter indicators
+    if (
+      rack.includes('ground') ||
+      rack.includes('counter') ||
+      rack.includes('floor 0') ||
+      rack.startsWith('gf') ||
+      rack.includes('g-floor') ||
+      rack.includes('g-0')
+    ) {
+      return false;
+    }
+
+    // Explicit Upstairs indicators (Floor 1, Floor 2, 1st, 2nd, Upstairs)
+    if (
+      rack.includes('floor 1') ||
+      rack.includes('floor 2') ||
+      rack.includes('1st') ||
+      rack.includes('2nd') ||
+      rack.includes('upstairs') ||
+      rack.includes('f-1') ||
+      rack.includes('f-2')
+    ) {
+      return true;
+    }
+
+    // If stock is allocated upstairs on Floor 1 or Floor 2
+    if ((Number(part.stockFloor1) || 0) > 0 || (Number(part.stockFloor2) || 0) > 0) {
+      return true;
+    }
+
+    // Default shelf naming like "Rack A-01" without ground is an upstairs warehouse rack
+    if (rack.includes('rack') || rack.includes('shelf')) {
+      return true;
+    }
+
+    return false;
+  }
+
   // Header Counters & Statistics
   updateHeaderStats() {
     const totalParts = this.products.length;
     const totalUnits = this.products.reduce((acc, p) => acc + this.inventoryManager.getTotalStock(p), 0);
-    const totalGroundStash = this.products.reduce((acc, p) => acc + (Number(p.stockGroundFloor) || 0), 0);
+    // Only count ground stock for UPSTAIRS parts (actual returned items sitting on counter)
+    const totalGroundStash = this.products.reduce((acc, p) => {
+      return this.isUpstairsPart(p) ? acc + (Number(p.stockGroundFloor) || 0) : acc;
+    }, 0);
     const inStockCount = this.products.filter(p => this.inventoryManager.getTotalStock(p) > 0).length;
     const lowStockCount = this.products.filter(p => {
       const s = this.inventoryManager.getTotalStock(p);
@@ -1048,10 +1094,10 @@ class AutoPartsApp {
     const totalEl = document.getElementById('ground-stash-modal-total');
     if (!modal) return;
 
-    const stashParts = this.products.filter(p => (Number(p.stockGroundFloor) || 0) > 0);
+    const stashParts = this.products.filter(p => this.isUpstairsPart(p) && (Number(p.stockGroundFloor) || 0) > 0);
     const totalUnits = stashParts.reduce((acc, p) => acc + (Number(p.stockGroundFloor) || 0), 0);
 
-    if (totalEl) totalEl.textContent = `${totalUnits} Items Waiting on Ground Floor`;
+    if (totalEl) totalEl.textContent = `${totalUnits} Returned Items Waiting on Counter`;
 
     if (container) {
       if (stashParts.length === 0) {
@@ -1130,23 +1176,28 @@ class AutoPartsApp {
   }
 
   transferAllStashUpstairs() {
-    const stashParts = this.products.filter(p => (Number(p.stockGroundFloor) || 0) > 0);
+    const stashParts = this.products.filter(p => this.isUpstairsPart(p) && (Number(p.stockGroundFloor) || 0) > 0);
     if (stashParts.length === 0) {
-      this.showToast("No items currently waiting on ground floor counter.", "info");
+      this.showToast("No upstairs returned items currently waiting on ground floor counter.", "info");
       return;
     }
 
     let movedCount = 0;
     stashParts.forEach(p => {
       const qty = Number(p.stockGroundFloor) || 0;
-      p.stockFloor1 = (Number(p.stockFloor1) || 0) + qty;
+      const isFloor2 = (p.rackLocation || '').toLowerCase().includes('floor 2') || (p.rackLocation || '').toLowerCase().includes('2nd');
+      if (isFloor2) {
+        p.stockFloor2 = (Number(p.stockFloor2) || 0) + qty;
+      } else {
+        p.stockFloor1 = (Number(p.stockFloor1) || 0) + qty;
+      }
       p.stockGroundFloor = 0;
       movedCount += qty;
     });
 
     this.saveProducts();
     this.sound.playTransferChime();
-    this.showToast(`Restocked all ${movedCount} items from ground counter to upstairs racks!`, "success");
+    this.showToast(`Restocked all ${movedCount} returned items from ground counter to their upstairs racks!`, "success");
     this.renderProducts();
     this.updateHeaderStats();
     this.openGroundStashModal();

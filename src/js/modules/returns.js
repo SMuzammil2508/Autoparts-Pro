@@ -51,11 +51,19 @@ export class ReturnsManager {
     this.app.saveProducts();
     this.app.sound.playTransferChime();
 
+    const isUpstairs = this.app.isUpstairsPart ? this.app.isUpstairsPart(part) : true;
     this.closeCustomerReturnModal();
-    this.app.showToast(
-      `Accepted unused return for "${part.name}". Stored on Ground Floor Counter for fast resale or restock.`,
-      "warning"
-    );
+    if (isUpstairs) {
+      this.app.showToast(
+        `Accepted unused return for "${part.name}". Stored on Ground Floor Counter until racked up to ${part.rackLocation || 'upstairs'}.`,
+        "warning"
+      );
+    } else {
+      this.app.showToast(
+        `Accepted return for "${part.name}". Restocked on Ground Floor (${part.rackLocation || 'Ground Floor'}).`,
+        "success"
+      );
+    }
 
     this.app.renderProducts();
     this.app.updateHeaderStats();
@@ -394,12 +402,23 @@ export class ReturnsManager {
       return;
     }
 
+    const isUpstairs = this.app.isUpstairsPart ? this.app.isUpstairsPart(part) : true;
+    if (!isUpstairs) {
+      this.app.showToast(`"${part.name}" is designated for Ground Floor storage. No need to rack up!`, "info");
+      return;
+    }
+
     part.stockGroundFloor = (Number(part.stockGroundFloor) || 0) - 1;
-    part.stockFloor1 = (Number(part.stockFloor1) || 0) + 1;
+    const isFloor2 = (part.rackLocation || '').toLowerCase().includes('floor 2') || (part.rackLocation || '').toLowerCase().includes('2nd');
+    if (isFloor2) {
+      part.stockFloor2 = (Number(part.stockFloor2) || 0) + 1;
+    } else {
+      part.stockFloor1 = (Number(part.stockFloor1) || 0) + 1;
+    }
 
     this.app.saveProducts();
     this.app.sound.playTransferChime();
-    this.app.showToast(`Restocked 1 unit of "${part.name}" to ${part.rackLocation || 'Floor 1 Rack'}`, "success");
+    this.app.showToast(`Restocked 1 unit of "${part.name}" to ${part.rackLocation || (isFloor2 ? 'Floor 2' : 'Floor 1')}`, "success");
     this.app.renderProducts();
     this.app.updateHeaderStats();
   }
