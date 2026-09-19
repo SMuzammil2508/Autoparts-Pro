@@ -15,6 +15,7 @@ import { PriceRevisionManager } from './modules/priceRevision.js';
 import { TaxonomyManager } from './modules/taxonomy.js';
 import { SettingsManager } from './modules/settings.js';
 import { InventoryManager } from './modules/inventory.js';
+import { PriceBookManager } from './modules/priceBook.js';
 
 class AutoPartsApp {
   constructor() {
@@ -60,6 +61,7 @@ class AutoPartsApp {
     this.taxonomyManager = new TaxonomyManager(this);
     this.settingsManager = new SettingsManager(this);
     this.inventoryManager = new InventoryManager(this);
+    this.priceBookManager = new PriceBookManager(this);
   }
 
   init() {
@@ -73,6 +75,9 @@ class AutoPartsApp {
     this.renderProducts();
     this.updateHeaderStats();
 
+    // Initialize Price Book (On-Order Catalog)
+    this.priceBookManager.init();
+
     // Bind Event Listeners & Global Keyboard Shortcuts
     this.setupEventListeners();
     this.setupGlobalKeyboardShortcuts();
@@ -81,7 +86,7 @@ class AutoPartsApp {
     this.storage.initCloudSync(this);
 
     if (window.lucide) lucide.createIcons();
-    console.log("🚀 AutoParts Pro Engine initialized with 4-Workspace Navigation & Live Cloud Sync.");
+    console.log("🚀 AutoParts Pro Engine initialized with 5-Workspace Navigation & Live Cloud Sync.");
   }
 
   saveProducts() {
@@ -169,6 +174,18 @@ class AutoPartsApp {
           </button>
         `;
         document.getElementById('header-action-print-claims')?.addEventListener('click', () => this.returnsManager.printWholesalerClaimSheet());
+      } else if (workspaceName === 'on-order') {
+        contextualContainer.innerHTML = `
+          <button 
+            id="header-action-add-on-order" 
+            class="contextual-action btn-touch flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs md:text-sm transition-all shadow-md shadow-purple-600/30 shrink-0 cursor-pointer"
+            title="Add a new on-order part to the Price Book"
+          >
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Add On-Order Part</span>
+          </button>
+        `;
+        document.getElementById('header-action-add-on-order')?.addEventListener('click', () => this.priceBookManager.openAddModal());
       }
     }
 
@@ -180,6 +197,9 @@ class AutoPartsApp {
       this.priceRevisionManager.calculateBrandPriceRevisionPreview();
     } else if (workspaceName === 'claims') {
       this.returnsManager.renderDefectiveClaimsTable('pending');
+    } else if (workspaceName === 'on-order') {
+      this.priceBookManager.renderBrandFilterChips();
+      this.priceBookManager.renderCatalog();
     }
 
     if (window.lucide) lucide.createIcons();

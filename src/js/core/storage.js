@@ -16,7 +16,8 @@ export const STORAGE_KEYS = {
   CATEGORIES: 'autoparts_categories_v1',
   DEFECTIVE_RETURNS: 'autoparts_defective_v1',
   PRICE_HISTORY: 'autoparts_price_history_v1',
-  VEHICLE_ALIASES: 'autoparts_vehicle_aliases_v1'
+  VEHICLE_ALIASES: 'autoparts_vehicle_aliases_v1',
+  PRICE_CATALOG: 'autoparts_price_catalog_v1'
 };
 
 export const DEFAULT_VEHICLE_ALIASES = {
@@ -194,6 +195,7 @@ export class StorageManager {
     await this.syncProductsFromCloud();
     await this.syncOutflowsFromCloud();
     await this.syncDefectiveReturnsFromCloud();
+    await this.syncPriceCatalogFromCloud();
 
     // Set up Realtime WebSockets
     this.setupRealtimeSubscriptions(appContext);
@@ -203,12 +205,13 @@ export class StorageManager {
       console.log("🌐 Internet reconnected — syncing with Supabase cloud...");
       this.syncProductsFromCloud();
       this.syncOutflowsFromCloud();
+      this.syncPriceCatalogFromCloud();
     });
 
     window.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         this.syncProductsFromCloud();
-        this.syncOutflowsFromCloud();
+        this.syncPriceCatalogFromCloud();
       }
     });
   }
@@ -272,6 +275,10 @@ export class StorageManager {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'defective_returns' }, (payload) => {
           console.log("⚡ [Realtime] Cloud claim update detected:", payload);
           this.syncDefectiveReturnsFromCloud();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'price_catalog' }, (payload) => {
+          console.log("⚡ [Realtime] Cloud price catalog change detected:", payload);
+          this.syncPriceCatalogFromCloud();
         })
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
@@ -650,6 +657,164 @@ export class StorageManager {
       return list[index];
     }
     return null;
+  }
+
+  // --- PRICE CATALOG / ON-ORDER ITEMS ---
+  static getPriceCatalog() {
+    let cached = null;
+    const local = localStorage.getItem(STORAGE_KEYS.PRICE_CATALOG);
+    if (local !== null) {
+      try {
+        cached = JSON.parse(local);
+      } catch (e) {
+        console.error("Error parsing price catalog:", e);
+      }
+    }
+    if (cached === null) {
+      cached = [];
+      localStorage.setItem(STORAGE_KEYS.PRICE_CATALOG, JSON.stringify([]));
+    }
+    if (isCloudSyncEnabled()) {
+      this.syncPriceCatalogFromCloud();
+    }
+    return cached;
+  }
+
+  static async syncPriceCatalogFromCloud() {
+    const client = this.getClient();
+    if (!client || !navigator.onLine) return;
+
+    try {
+      const { data, error } = await client
+        .from('price_catalog')
+        .select('*')
+        .order('name');
+
+      if (!error && data) {
+        const mapped = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          partNumber: item.part_number,
+          brand: item.brand || 'OEM',
+          vehicleBrand: item.vehicle_brand || 'Universal',
+          compatibleModels: Array.isArray(item.compatible_models) ? item.compatible_models : (item.compatible_models ? JSON.parse(item.compatible_models) : []),
+          category: item.category || 'General',
+          wholesalerName: item.wholesaler_name || '',
+          wholesalerPhone: item.wholesaler_phone || '',
+          costPrice: parseFloat(item.cost_price) || 0,
+          sellingPrice: parseFloat(item.selling_price) || 0,
+          leadTime: item.lead_time || 'Same Day',
+          notes: item.notes || '',
+          lastPriceUpdated: item.last_price_updated || item.created_at || new Date().toISOString()
+        }));
+
+        localStorage.setItem(STORAGE_KEYS.PRICE_CATALOG, JSON.stringify(mapped));
+        if (window.app && window.app.priceBookManager) {
+          window.app.priceBookManager.catalog = mapped;
+          window.app.priceBookManager.renderCatalog();
+        }
+      }
+    } catch (err) {
+      console.warn("Price catalog cloud sync note:", err);
+    }
+  }
+
+  static savePriceCatalog(catalog) {
+    localStorage.setItem(STORAGE_KEYS.PRICE_CATALOG, JSON.stringify(catalog));
+    const client = this.getClient();
+    if (client && navigator.onLine && isCloudSyncEnabled()) {
+      const dbRows = catalog.map(p => ({
+        id: p.id,
+        name: p.name,
+        part_number: p.partNumber,
+        brand: p.brand || 'OEM',
+        vehicle_brand: p.vehicleBrand || 'Universal',
+        compatible_models: p.compatibleModels || [],
+        category: p.category || 'General',
+        wholesaler_name: p.wholesalerName || '',
+        wholesaler_phone: p.wholesalerPhone || '',
+        cost_price: parseFloat(p.costPrice) || 0,
+        selling_price: parseFloat(p.sellingPrice) || 0,
+        lead_time: p.leadTime || 'Same Day',
+        notes: p.notes || '',
+        last_price_updated: p.lastPriceUpdated || new Date().toISOString()
+      }));
+
+      client.from('price_catalog').upsert(dbRows).then(({ error }) => {
+        if (error) {
+          console.warn("Could not upsert to price_catalog cloud table (local storage updated successfully):", error.message);
+        }
+      });
+    }
+  }
+
+  static addPriceCatalogItem(item) {
+    const list = this.getPriceCatalog();
+    const newItem = {
+      id: "ord-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+      createdAt: new Date().toISOString(),
+      lastPriceUpdated: new Date().toISOString(),
+      ...item
+    };
+    list.unshift(newItem);
+    this.savePriceCatalog(list);
+    return newItem;
+  }
+
+  static updatePriceCatalogItem(id, updates) {
+    const list = this.getPriceCatalog();
+    const index = list.findIndex(p => p.id === id);
+    if (index !== -1) {
+      list[index] = {
+        ...list[index],
+        ...updates,
+        lastPriceUpdated: new Date().toISOString()
+      };
+      this.savePriceCatalog(list);
+      return list[index];
+    }
+    return null;
+  }
+
+  static deletePriceCatalogItem(id) {
+    const list = this.getPriceCatalog().filter(p => p.id !== id);
+    localStorage.setItem(STORAGE_KEYS.PRICE_CATALOG, JSON.stringify(list));
+    const client = this.getClient();
+    if (client && navigator.onLine && isCloudSyncEnabled()) {
+      client.from('price_catalog').delete().eq('id', id).then(() => {});
+    }
+    return list;
+  }
+
+  static convertPriceCatalogItemToStock(catalogId, stockConfig = {}) {
+    const catalogList = this.getPriceCatalog();
+    const item = catalogList.find(p => p.id === catalogId);
+    if (!item) return null;
+
+    // Create physical product
+    const newProduct = {
+      id: "part-" + Date.now(),
+      name: item.name,
+      partNumber: item.partNumber || ("SKU-" + Date.now().toString().slice(-6)),
+      barcode: item.partNumber || Date.now().toString().slice(-12),
+      brand: item.brand || 'OEM',
+      category: item.category || 'General',
+      vehicleBrand: item.vehicleBrand || 'Universal',
+      compatibleModels: item.compatibleModels || [],
+      costPrice: parseFloat(item.costPrice) || 0,
+      sellingPrice: parseFloat(item.sellingPrice) || 0,
+      stockFloor1: parseInt(stockConfig.stockFloor1) || 0,
+      stockFloor2: parseInt(stockConfig.stockFloor2) || 0,
+      stockGroundFloor: parseInt(stockConfig.stockGroundFloor) || 0,
+      rackLocation: stockConfig.rackLocation || 'Floor 1 - Rack A-01',
+      minStockAlert: parseInt(stockConfig.minStockAlert) || 1,
+      unit: stockConfig.unit || 'Piece',
+      imageUrl: item.imageUrl || null
+    };
+
+    // Save to physical products
+    this.saveProduct(newProduct);
+    return newProduct;
   }
 
   // --- SETTINGS ---
