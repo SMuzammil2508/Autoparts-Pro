@@ -1,7 +1,5 @@
-// Realistic Auto Parts Dataset & Defaults
-// Contains detailed multi-floor rack locations, ground floor returns, pricing in INR (₹ / Rs.), and vehicle fitments
-
-export const INITIAL_PARTS_DATA = [
+// Sample Demo Dataset (Only loaded if user explicitly clicks 'Reload Demo Parts' in Settings)
+export const SAMPLE_DEMO_PARTS = [
   // BRAKES & SUSPENSION
   {
     id: "part-001",
@@ -586,6 +584,9 @@ export const INITIAL_PARTS_DATA = [
     imageUrl: "https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=300&q=80"
   }
 ];
+
+// Production Clean Slate: Initial store inventory always starts empty
+export const INITIAL_PARTS_DATA = [];
 
 export const VEHICLE_BRANDS = [
   { id: "all", name: "All Brands", icon: "car" },

@@ -1,7 +1,7 @@
 // Enterprise Supabase Cloud PostgreSQL & Offline-Resilient Storage Manager
 // Features: Real-time Multi-Device WebSockets, Auto-Cloud Seeding, Offline Fallback Cache, and Schema Migrations
 
-import { INITIAL_PARTS_DATA, DEFAULT_VEHICLE_BRANDS, DEFAULT_CATEGORIES } from '../config/data.js';
+import { INITIAL_PARTS_DATA, SAMPLE_DEMO_PARTS, DEFAULT_VEHICLE_BRANDS, DEFAULT_CATEGORIES } from '../config/data.js';
 
 export const SUPABASE_CONFIG = {
   url: "https://gateyugosmgzvavrpoxl.supabase.co",
@@ -167,8 +167,9 @@ export class StorageManager {
     }
 
     if (cached === null) {
-      const isClean = localStorage.getItem('autoparts_is_production_clean') === 'true';
-      cached = isClean ? [] : INITIAL_PARTS_DATA;
+      cached = [];
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+      localStorage.setItem('autoparts_is_production_clean', 'true');
     }
 
     // 2. ALWAYS trigger async cloud synchronization in background if cloud sync is enabled!
@@ -332,18 +333,13 @@ export class StorageManager {
           }
           this.updateSyncBadge(true, "Live Cloud Synced");
         } else {
-          // Cloud table is empty: Check if production clean
-          const isClean = localStorage.getItem('autoparts_is_production_clean') === 'true';
-          if (!isClean) {
-            console.log("🌱 Seeding default auto parts to Supabase cloud...");
-            await this.seedProductsToCloud(INITIAL_PARTS_DATA);
-          } else {
-            localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
-            if (window.app && window.app.products) {
-              window.app.products = [];
-              window.app.renderProducts();
-              window.app.updateHeaderStats();
-            }
+          // Cloud table is empty: Keep production store clean without seeding demo parts
+          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+          localStorage.setItem('autoparts_is_production_clean', 'true');
+          if (window.app && window.app.products) {
+            window.app.products = [];
+            window.app.renderProducts();
+            window.app.updateHeaderStats();
           }
           this.updateSyncBadge(true, "Live Cloud Synced");
         }
@@ -490,11 +486,14 @@ export class StorageManager {
   static getOutflows() {
     const data = localStorage.getItem(STORAGE_KEYS.OUTFLOW_LOG);
     if (!data) {
-      const demoSales = this.createDemoSales();
-      this.saveOutflows(demoSales);
-      return demoSales;
+      localStorage.setItem(STORAGE_KEYS.OUTFLOW_LOG, JSON.stringify([]));
+      return [];
     }
-    return JSON.parse(data);
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      return [];
+    }
   }
 
   static async syncOutflowsFromCloud() {
@@ -553,11 +552,14 @@ export class StorageManager {
   static getDefectiveReturns() {
     const data = localStorage.getItem(STORAGE_KEYS.DEFECTIVE_RETURNS);
     if (!data) {
-      const demo = this.createDemoDefectiveReturns();
-      this.saveDefectiveReturns(demo);
-      return demo;
+      localStorage.setItem(STORAGE_KEYS.DEFECTIVE_RETURNS, JSON.stringify([]));
+      return [];
     }
-    return JSON.parse(data);
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      return [];
+    }
   }
 
   static async syncDefectiveReturnsFromCloud() {
@@ -738,21 +740,19 @@ export class StorageManager {
   }
 
   static resetToDemoData() {
-    localStorage.removeItem('autoparts_is_production_clean');
-    localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
-    localStorage.removeItem(STORAGE_KEYS.OUTFLOW_LOG);
-    localStorage.removeItem(STORAGE_KEYS.SETTINGS);
-    localStorage.removeItem(STORAGE_KEYS.VEHICLE_BRANDS);
-    localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
-    localStorage.removeItem(STORAGE_KEYS.DEFECTIVE_RETURNS);
-    localStorage.removeItem(STORAGE_KEYS.PRICE_HISTORY);
+    const demoOutflows = this.createDemoSales();
+    const demoReturns = this.createDemoDefectiveReturns();
+    localStorage.setItem('autoparts_is_production_clean', 'false');
+    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(SAMPLE_DEMO_PARTS));
+    localStorage.setItem(STORAGE_KEYS.OUTFLOW_LOG, JSON.stringify(demoOutflows));
+    localStorage.setItem(STORAGE_KEYS.DEFECTIVE_RETURNS, JSON.stringify(demoReturns));
     return {
-      products: INITIAL_PARTS_DATA,
+      products: SAMPLE_DEMO_PARTS,
       vehicleBrands: this.getVehicleBrands(),
       categories: this.getCategories(),
-      outflowLog: this.getOutflows(),
+      outflowLog: demoOutflows,
       settings: this.getSettings(),
-      defectiveReturns: this.getDefectiveReturns()
+      defectiveReturns: demoReturns
     };
   }
 
