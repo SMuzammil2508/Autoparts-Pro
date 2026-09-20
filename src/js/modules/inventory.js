@@ -834,27 +834,7 @@ export class InventoryManager {
       finalBarcode = this.generateUniqueBarcode();
     }
 
-    // --- 3. DUPLICATE PART NAME & BRAND VALIDATION (PREVENT ACCIDENTAL DUPLICATES) ---
-    if (!partId) {
-      const dupByName = this.app.products.find(p =>
-        p.id !== partId &&
-        p.name.trim().toLowerCase() === name.toLowerCase() &&
-        (p.brand || '').trim().toLowerCase() === brand.toLowerCase() &&
-        (p.vehicleBrand || '').trim().toLowerCase() === vehicleBrand.toLowerCase()
-      );
 
-      if (dupByName) {
-        this.app.sound.playClick();
-        const nameInput = document.getElementById('form-part-name');
-        if (nameInput) {
-          nameInput.focus();
-          nameInput.classList.add('border-amber-500', 'bg-amber-950/40');
-          setTimeout(() => nameInput.classList.remove('border-amber-500', 'bg-amber-950/40'), 3000);
-        }
-        this.app.showToast(`⚠️ Similar item already exists: "${name}" (${dupByName.partNumber}). Please update stock or use a unique name.`, "warning");
-        return;
-      }
-    }
 
     const compatibleModels = modelsStr ? modelsStr.split(',').map(m => m.trim()).filter(Boolean) : [vehicleBrand];
 
