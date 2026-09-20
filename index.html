@@ -1251,6 +1251,18 @@
               placeholder="e.g. BP-TY-402" 
               class="w-full px-3 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-100 font-mono font-bold focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none uppercase text-xs transition-all placeholder:text-slate-500" 
             />
+            <!-- BOODMO FITMENT LOOKUP BUTTON -->
+            <button
+              type="button"
+              id="btn-boodmo-lookup"
+              disabled
+              title="Open Boodmo to check which cars this part fits"
+              class="mt-1.5 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-500 text-[11px] font-bold transition-all duration-200 cursor-not-allowed opacity-50"
+              onclick="window.app.openBoodmoLookup()"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span id="btn-boodmo-lookup-text">Enter Part No. to verify fitment on Boodmo</span>
+            </button>
           </div>
 
           <!-- BARCODE WITH DOCKED INLINE GENERATOR BUTTON -->
@@ -3320,7 +3332,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- APPLICATION ENTRY SCRIPT (Cache-Busted) -->
-  <script type="module" src="./src/js/app.js?v=1.3.1"></script>
+  <script type="module" src="./src/js/app.js?v=1.3.2"></script>
 
 </body>
 </html>

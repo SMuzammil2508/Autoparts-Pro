@@ -283,6 +283,21 @@ class AutoPartsApp {
     return false;
   }
 
+  // Boodmo Part Fitment Deep-Link
+  // Opens boodmo.com pre-searched with the typed part number so the user can verify car compatibility
+  openBoodmoLookup() {
+    const partNumberInput = document.getElementById('form-part-number');
+    const partNumber = partNumberInput ? partNumberInput.value.trim() : '';
+    if (!partNumber || partNumber.length < 3) {
+      this.showToast('Type a Part Number first to look it up on Boodmo.', 'info');
+      return;
+    }
+    const boodmoUrl = `https://boodmo.com/catalog/search/?q=${encodeURIComponent(partNumber)}`;
+    window.open(boodmoUrl, '_blank', 'noopener,noreferrer');
+    this.showToast(`Opening Boodmo for "${partNumber}" — check car fitment and come back to fill in Compatible Models.`, 'info');
+    this.sound.playClick();
+  }
+
   // Header Counters & Statistics
   updateHeaderStats() {
     const totalParts = this.products.length;
@@ -1626,6 +1641,31 @@ class AutoPartsApp {
     if (addPartForm) {
       addPartForm.addEventListener('submit', (e) => this.inventoryManager.savePartFromForm(e));
     }
+
+    // Boodmo Lookup Button — toggles live as user types the Part Number
+    const partNumberInput = document.getElementById('form-part-number');
+    if (partNumberInput) {
+      partNumberInput.addEventListener('input', () => {
+        const btn = document.getElementById('btn-boodmo-lookup');
+        const btnText = document.getElementById('btn-boodmo-lookup-text');
+        const val = partNumberInput.value.trim();
+        if (!btn) return;
+        if (val.length >= 3) {
+          // Active state — teal/cyan themed to signal "ready to lookup"
+          btn.disabled = false;
+          btn.classList.remove('bg-slate-800/60', 'border-slate-700/60', 'text-slate-500', 'cursor-not-allowed', 'opacity-50');
+          btn.classList.add('bg-cyan-950/60', 'border-cyan-500/50', 'text-cyan-300', 'hover:bg-cyan-900/60', 'hover:border-cyan-400', 'cursor-pointer', 'shadow-sm', 'shadow-cyan-500/10');
+          if (btnText) btnText.textContent = `Verify fitment for "${val}" on Boodmo →`;
+        } else {
+          // Disabled state
+          btn.disabled = true;
+          btn.classList.add('bg-slate-800/60', 'border-slate-700/60', 'text-slate-500', 'cursor-not-allowed', 'opacity-50');
+          btn.classList.remove('bg-cyan-950/60', 'border-cyan-500/50', 'text-cyan-300', 'hover:bg-cyan-900/60', 'hover:border-cyan-400', 'cursor-pointer', 'shadow-sm', 'shadow-cyan-500/10');
+          if (btnText) btnText.textContent = 'Enter Part No. to verify fitment on Boodmo';
+        }
+      });
+    }
+
 
     const btnGenerateBarcode = document.getElementById('btn-generate-part-barcode');
     if (btnGenerateBarcode) {
