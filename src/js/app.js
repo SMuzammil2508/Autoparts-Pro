@@ -292,9 +292,10 @@ class AutoPartsApp {
       this.showToast('Type a Part Number first to look it up on Boodmo.', 'info');
       return;
     }
-    const boodmoUrl = `https://boodmo.com/catalog/search/?q=${encodeURIComponent(partNumber)}`;
+    // Use Google site search since Boodmo's Angular router blocks/redirects direct search queries
+    const boodmoUrl = `https://www.google.com/search?q=site:boodmo.com+${encodeURIComponent(partNumber)}`;
     window.open(boodmoUrl, '_blank', 'noopener,noreferrer');
-    this.showToast(`Opening Boodmo for "${partNumber}" — check car fitment and come back to fill in Compatible Models.`, 'info');
+    this.showToast(`Looking up "${partNumber}" on Boodmo via Google — check car fitment and come back to fill in Compatible Models.`, 'info');
     this.sound.playClick();
   }
 
